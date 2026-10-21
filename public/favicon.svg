@@ -1,9 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-labelledby="t">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
+  <!-- palette gruvbox | canvas #282828 | accent #fabd2f | secondary=extra.cyan #8ec07c | glyph lucide:shield-check -->
   <title id="t">Octowarden</title>
-  <!-- Octowarden mark: a shield with a check, inside a rounded tile. -->
-  <rect x="1" y="1" width="30" height="30" rx="7" fill="#0969da"/>
-  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M16 6l8 3v6c0 5-3.4 8.6-8 10.4C11.4 23.6 8 20 8 15V9z"/>
-    <path d="M12.5 15.5l2.6 2.6 4.6-5"/>
+  <rect width="32" height="32" rx="6" fill="#282828"/>
+  <g transform="translate(4 4)" fill="none" stroke="#fabd2f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+    <path d="m9 12l2 2l4-4"/>
   </g>
+  <circle cx="16" cy="22" r="1.5" fill="#8ec07c"/>
 </svg>
