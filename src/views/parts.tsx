@@ -108,9 +108,9 @@ export const VisibilityBadge = ({ visibility }: { visibility: string }) => (
 
 /** Brand mark for the navbar, drawn with tokens (the standalone favicon carries literal hex). */
 export const BrandMark = () => (
-  <svg class="t-icon brand-mark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-    <circle cx="12" cy="11" r="2.5" fill="var(--t-success)" stroke="none" />
+  <svg class="t-icon brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 6l8 3v6c0 5-3.4 8.6-8 10.4C11.4 23.6 8 20 8 15V9z" />
+    <path d="M12.5 15.5l2.6 2.6 4.6-5" />
   </svg>
 )
 
