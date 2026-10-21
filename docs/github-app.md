@@ -26,7 +26,7 @@ and `octoforge.json` and the App manifest are generated from the same list.
 | `metadata` | read | everything | Required by GitHub for every App; reads repos, topics and rulesets. | Nothing works: GitHub refuses every call. |
 <!-- permissions:end -->
 
-`members` is an organization permission; everything else is a repository permission. A fine-grained
+`members` is an organization permission: GitHub grants it only on installations on an organization, so octowarden never reports it missing on a personal account. Everything else is a repository permission. A fine-grained
 token needs the same list.
 
 A classic token needs these scopes:

@@ -32,6 +32,8 @@ export type PermissionRow = {
   ok: boolean | null
   /** An alternative permission that satisfies this row (`pull_requests:write` for labels). */
   via?: string
+  /** Why the row counts as satisfied without a grant (an organization permission with no organization installed). */
+  note?: string
   why: string
   breaks: string
   sections: string[]
@@ -159,7 +161,7 @@ async function probeApp(s: GitHubStatus, clients: AppClients, pinned: string | u
     .map((i) => {
       const type = i.account?.type === 'Organization' ? ('org' as const) : ('user' as const)
       const account = i.account?.login ?? 'unknown account'
-      return { id: i.id, account, type, ...(i.repository_selection ? { repository_selection: i.repository_selection } : {}), missing: missingGrants(i.permissions ?? {}), url: installationUrl({ id: i.id, account, type }) }
+      return { id: i.id, account, type, ...(i.repository_selection ? { repository_selection: i.repository_selection } : {}), missing: missingGrants(i.permissions ?? {}, type), url: installationUrl({ id: i.id, account, type }) }
     })
     .sort((a, b) => a.account.localeCompare(b.account))
   const grants = new Map(list.map((i) => [i.id, i.permissions ?? {}]))
@@ -183,6 +185,16 @@ async function probeApp(s: GitHubStatus, clients: AppClients, pinned: string | u
   // Pinned: every call uses that installation. Otherwise the lowest level across installations (a gap anywhere shows).
   const granted = pin ? grants.get(pin.id) : installs.length ? lowestGrants(installs.map((i) => grants.get(i.id) ?? {})) : undefined
   s.permissions = rowsFor(granted)
+  // Organization permissions only count on organization installations; personal accounts can never grant them.
+  const orgs = pin ? (pin.type === 'org' ? [pin] : []) : installs.filter((i) => i.type === 'org')
+  const orgGranted = orgs.length ? lowestGrants(orgs.map((i) => grants.get(i.id) ?? {})) : undefined
+  s.permissions = s.permissions.map((r) => {
+    const p = REQUIRED_PERMISSIONS.find((x) => x.key === r.key && x.level === r.level)
+    if (!p?.orgOnly || !installs.length) return r
+    if (!orgGranted) return { ...r, ok: true, note: 'organization permission: no organization installation' }
+    const st = permissionState(orgGranted, p)
+    return { ...r, granted: st.granted, ok: st.ok, ...(st.via ? { via: st.via } : {}) }
+  })
   const review = pin ?? installs.find((i) => i.missing.length) ?? (installs.length === 1 ? installs[0] : undefined)
   if (review) s.install_url = review.url
 }

@@ -86,12 +86,17 @@ const PermissionTable = ({ status }: { status: GitHubStatus }) => (
             <td safe>{p.level}</td>
             <td>
               <span class="t-badge" data-tone={grantedTone(p)} safe>
-                {p.granted}
+                {p.note ? 'n/a' : p.granted}
               </span>
               {p.via ? (
                 <span class="t-muted t-small" safe>
                   {` via ${p.via}`}
                 </span>
+              ) : null}
+              {p.note ? (
+                <div class="t-muted t-small" safe>
+                  {p.note}
+                </div>
               ) : null}
             </td>
             <td>

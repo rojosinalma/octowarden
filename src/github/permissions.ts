@@ -24,6 +24,8 @@ export type RequiredPermission = {
   alternatives?: string[]
   /** Only these changes of `sections` need it (absent: the whole section, read included). */
   applies?: (change: Change) => boolean
+  /** An organization permission: GitHub never grants it on an installation on a personal account. */
+  orgOnly?: true
 }
 
 const WORKFLOW_DIR = /^\.github\/workflows\//
@@ -122,6 +124,7 @@ export const REQUIRED_PERMISSIONS: readonly RequiredPermission[] = [
     sections: [],
     features: ['team picker'],
     scope: 'read:org',
+    orgOnly: true,
   },
   {
     key: 'metadata',
@@ -225,7 +228,7 @@ export function scopeState(scopes: string[] | undefined, scope: ClassicScope): b
 }
 
 /** `<key>:<level>` of every requirement a grant map definitely misses, in REQUIRED_PERMISSIONS order. */
-export function missingGrants(granted: Record<string, string> | undefined): string[] {
+export function missingGrants(granted: Record<string, string> | undefined, account: 'user' | 'org' = 'org'): string[] {
   if (!granted) return []
-  return REQUIRED_PERMISSIONS.filter((p) => permissionState(granted, p).ok === false).map(permId)
+  return REQUIRED_PERMISSIONS.filter((p) => !(p.orgOnly && account === 'user') && permissionState(granted, p).ok === false).map(permId)
 }

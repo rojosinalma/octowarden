@@ -84,6 +84,7 @@ describe('grant evaluation', () => {
     const { pull_requests: _, ...noPr } = app
     expect(missingGrants(noPr)).toEqual(['issues:write', 'pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'])
     expect(missingGrants(undefined)).toEqual([])
+    expect(missingGrants(app, 'user')).toEqual(['repository_hooks:write', 'statuses:read'])
   })
 
   test('lowestGrants keeps the lowest level and drops keys one map lacks', () => {

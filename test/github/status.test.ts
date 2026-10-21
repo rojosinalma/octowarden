@@ -29,7 +29,8 @@ describe('GitHub App', () => {
         account: 'octo-example',
         type: 'user',
         repository_selection: 'all',
-        missing: ['repository_hooks:write', 'statuses:read', 'members:read'],
+        // members is an organization permission: never missing on a personal account
+        missing: ['repository_hooks:write', 'statuses:read'],
         url: 'https://github.com/settings/installations/90000001',
       },
       {
@@ -57,14 +58,15 @@ describe('GitHub App', () => {
     await appWorld({ installations: [one] })
     const s = await probeGitHubStatus()
     expect(row(s, 'issues')).toMatchObject({ granted: 'none', ok: true, via: 'pull_requests:write' })
-    expect(s.missing).toEqual(['repository_hooks:write', 'statuses:read', 'members:read'])
+    expect(s.missing).toEqual(['repository_hooks:write', 'statuses:read'])
+    expect(row(s, 'members')).toMatchObject({ ok: true, note: 'organization permission: no organization installation' })
   })
 
   test('a pinned installation fills the rows; a pin that does not exist says so', async () => {
     await appWorld({ installationId: '90000001' })
     const pinned = await probeGitHubStatus()
     expect(pinned.installation_id).toBe(90000001)
-    expect(pinned.missing).toEqual(['repository_hooks:write', 'statuses:read', 'members:read'])
+    expect(pinned.missing).toEqual(['repository_hooks:write', 'statuses:read'])
     expect(pinned.install_url).toBe('https://github.com/settings/installations/90000001')
     await setSetting('github_app_installation_id', '42')
     const wrong = await probeGitHubStatus()
@@ -98,10 +100,21 @@ describe('GitHub App', () => {
     expect(s.installations).toBeUndefined()
   })
 
+  test('organization permissions count only on organization installations', async () => {
+    const [user, org] = await fixture<any[]>('github/installations')
+    const grantedOrg = { ...org, permissions: { ...org.permissions, members: 'read' } }
+    await appWorld({ installations: [user, grantedOrg] })
+    const s = await probeGitHubStatus()
+    expect(s.missing).not.toContain('members:read')
+    expect(row(s, 'members')).toMatchObject({ granted: 'read', ok: true })
+    await appWorld({ installations: [user, org] })
+    expect((await probeGitHubStatus()).missing).toContain('members:read')
+  })
+
   test('gaps per repo owner: the owner installation decides', async () => {
     await appWorld()
     const s = await probeGitHubStatus()
-    expect(gapsFor(s, 'octo-example').map((g) => g.reason)).toEqual(['GitHub App lacks repository_hooks:write', 'GitHub App lacks statuses:read', 'GitHub App lacks members:read'])
+    expect(gapsFor(s, 'octo-example').map((g) => g.reason)).toEqual(['GitHub App lacks repository_hooks:write', 'GitHub App lacks statuses:read'])
     expect(gapsFor(s, 'OCTO-ORG').map((g) => g.permission.key)).toEqual(['issues', 'pull_requests', 'repository_hooks', 'statuses', 'members'])
     // An owner without an installation falls back to the overall rows.
     expect(gapsFor(s, 'someone-else').length).toBe(5)
