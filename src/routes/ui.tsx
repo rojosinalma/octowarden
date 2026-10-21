@@ -14,6 +14,7 @@ export function register<A extends AnyElysia>(app: A): A {
     .get('/tailor/*', ({ params }) => serveStatic(`tailor/${(params as Record<string, string>)['*'] ?? ''}`))
     .get('/favicon.svg', () => serveStatic('favicon.svg'))
     .get('/favicon-sibling.svg', () => serveStatic('favicon-sibling.svg'))
+    .get('/favicon.ico', () => serveStatic('favicon.svg'))
   registerPages(app)
   registerActions(app)
   return app
