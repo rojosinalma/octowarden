@@ -14,6 +14,7 @@ import { log } from '../lib/log'
 import { getSetting, setSetting, type SettingKey } from '../lib/settings'
 import { VERSION } from '../lib/version'
 import { requireBearer } from './guard'
+import { clearSiblings, siblingsSchema, storeSiblings } from '../lib/siblings'
 
 const logger = log.child('octoforge')
 const ACTOR = { source: 'api' as const, actor: 'octoforge' }
@@ -126,6 +127,20 @@ export function register<A extends AnyElysia>(app: A): A {
             const s = await githubStatus()
             const back = s.mode ? `the ${s.mode} credential from ${s.source}` : 'no GitHub credential'
             return jsonOk(delivered ? `delivered credential removed; using ${back}` : `no delivered credential; using ${back}`, { removed: delivered, restart_required: false })
+          })
+          .put(
+            '/siblings',
+            async ({ request }) => {
+              const list = siblingsSchema.parse(await jsonBody(request))
+              await storeSiblings(list)
+              logger.info(`sibling list stored (${list.members.length} members)`)
+              return jsonOk(`sibling list stored (${list.members.length} members)`)
+            },
+            { parse: 'none' },
+          )
+          .delete('/siblings', async () => {
+            const had = await clearSiblings()
+            return jsonOk(had ? 'sibling list cleared' : 'no sibling list stored', { removed: had })
           })
           .post(
             '/database/adopt',

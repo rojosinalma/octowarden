@@ -67,3 +67,5 @@ code.diff-val[data-side="after"], pre.diff-val[data-side="after"] { color: var(-
 /* GitHub access table: the reason under what breaks */
 .gh-why { display: block; max-width: 60ch; }
 #github-manifest .t-code-pre { max-height: 22rem; overflow: auto; margin: 0; }
+.sibling-icon { border-radius: 4px; object-fit: contain; }
+.sibling-self { font-weight: 600; color: var(--t-text); cursor: default; }

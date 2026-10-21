@@ -8,6 +8,7 @@ import { peekGitHubStatus } from '../../github/status'
 import { gapCount } from '../../views/github'
 import { uiCtx, type Ctx } from '../../services'
 import { Layout, type NavKey } from '../../views/layout'
+import { siblingView } from '../../lib/siblings'
 import { Empty, Icon } from '../../views/parts'
 import type { AuthView } from '../../views/types'
 
@@ -34,7 +35,7 @@ export async function auth(): Promise<AuthView> {
 
 /** Full page in the layout, with the stored theme. */
 export async function page(active: NavKey, title: string, body: JSX.Element | Promise<JSX.Element>, opts: { subnav?: { href: string; label: string; icon: string }[]; status?: number } = {}): Promise<Response> {
-  const [settings, tailor, content] = await Promise.all([allSettings().catch(() => ({}) as Record<string, string>), head(), body])
+  const [settings, tailor, content, siblings] = await Promise.all([allSettings().catch(() => ({}) as Record<string, string>), head(), body, siblingView()])
   const doc = await (
     <Layout
       title={title}
@@ -44,6 +45,7 @@ export async function page(active: NavKey, title: string, body: JSX.Element | Pr
       theme={{ skin: settings['ui_skin'], palette: settings['ui_palette'], mode: settings['ui_mode'] }}
       subnav={opts.subnav}
       githubGaps={gapCount(peekGitHubStatus())}
+      siblings={siblings}
     >
       {content}
     </Layout>

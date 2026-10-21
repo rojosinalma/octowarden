@@ -46,7 +46,7 @@ afterEach(() => rmSync(dir, { recursive: true, force: true }))
 describe('octoforge contract v1', () => {
   test('404 on every route while OCTOFORGE_TOKEN is unset', async () => {
     await fresh({ DATA_DIR: dir })
-    for (const [m, p] of [['GET', '/manifest'], ['GET', '/status'], ['PUT', '/github'], ['DELETE', '/github'], ['POST', '/database/adopt'], ['DELETE', '/database']]) {
+    for (const [m, p] of [['GET', '/manifest'], ['GET', '/status'], ['PUT', '/github'], ['DELETE', '/github'], ['POST', '/database/adopt'], ['DELETE', '/database'], ['PUT', '/siblings'], ['DELETE', '/siblings']]) {
       const r = await req(m!, p!, m === 'PUT' || m === 'POST' ? { x: 1 } : undefined)
       expect(r.status).toBe(404)
     }
@@ -160,5 +160,45 @@ describe('octoforge contract v1', () => {
       await t.close()
     }
     expect(r.text).not.toContain(':x@')
+  })
+
+  test('PUT/DELETE siblings: stored, validated, rendered as a switcher, cleared', async () => {
+    const list = {
+      forge: { title: 'Octoforge', url: 'https://forge.example.com', icon: 'https://forge.example.com/favicon.svg' },
+      members: [
+        { name: 'octotally', title: 'Octotally', url: 'https://tally.example.com', icon: 'https://tally.example.com/favicon.svg' },
+        { name: 'octowarden', title: 'Octowarden', url: 'https://warden.example.com', icon: 'https://warden.example.com/favicon.svg' },
+      ],
+      updated_at: '2026-10-21T12:00:00Z',
+    }
+    expect((await req('PUT', '/siblings', list, 'wrong')).status).toBe(401)
+    expect((await req('PUT', '/siblings', { ...list, forge: { title: 'x', url: 'javascript:alert(1)' } })).status).toBe(422)
+    const r = await req('PUT', '/siblings', list)
+    expect(r.body).toMatchObject({ ok: true, message: 'sibling list stored (2 members)' })
+    let page = await (await app.handle(new Request('http://localhost/templates'))).text()
+    expect(page).toContain('href="https://forge.example.com"')
+    expect(page).toContain('href="https://tally.example.com"')
+    // the receiving member is marked, not linked
+    expect(page).not.toContain('href="https://warden.example.com"')
+    expect(page).toContain('data-sibling="octowarden"')
+    expect((await req('DELETE', '/siblings')).body).toMatchObject({ ok: true, removed: true })
+    page = await (await app.handle(new Request('http://localhost/templates'))).text()
+    expect(page).not.toContain('data-sibling')
+  })
+
+  test('siblings: no switcher without OCTOFORGE_TOKEN even when a list is stored', async () => {
+    const { setSetting } = await import('../../src/lib/settings')
+    await setSetting('octoforge_siblings', JSON.stringify({ forge: { title: 'Octoforge', url: 'https://forge.example.com' }, members: [], received_at: new Date().toISOString() }))
+    await fresh({ DATA_DIR: dir })
+    await setSetting('octoforge_siblings', JSON.stringify({ forge: { title: 'Octoforge', url: 'https://forge.example.com' }, members: [], received_at: new Date().toISOString() }))
+    const page = await (await createApp().handle(new Request('http://localhost/templates'))).text()
+    expect(page).not.toContain('data-sibling')
+  })
+
+  test('siblings: marked stale after siblings_stale_min without a re-send', async () => {
+    const { siblingView, storeSiblings } = await import('../../src/lib/siblings')
+    await storeSiblings({ forge: { title: 'Octoforge', url: 'https://forge.example.com' }, members: [] })
+    expect((await siblingView())?.stale).toBe(false)
+    expect((await siblingView(Date.now() + 181 * 60_000))?.stale).toBe(true)
   })
 })

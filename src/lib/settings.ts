@@ -50,6 +50,10 @@ export const DEFAULTS = {
   backup_dir: '',
   /** bin/backup keeps this many newest snapshots. */
   backup_keep: '14',
+  /** Sibling list pushed by Octoforge (`PUT /api/octoforge/siblings`, JSON); empty = no switcher. Not editable. */
+  octoforge_siblings: '',
+  /** The switcher marks the sibling list stale when Octoforge has not re-sent it for this many minutes. */
+  siblings_stale_min: '180',
 } as const satisfies Record<string, string>
 
 export type SettingKey = keyof typeof DEFAULTS

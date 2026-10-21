@@ -1234,3 +1234,11 @@
   // After tailor's own DOMContentLoaded upgrade (its script is deferred before this one).
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(boot)); else setTimeout(boot)
 })()
+
+// Sibling icons live on other hosts (often behind a login): a failed one falls back to a neutral mark.
+document.addEventListener('error', function (e) {
+  var img = e.target
+  if (!img || !img.classList || !img.classList.contains('sibling-icon') || img.dataset.fallback) return
+  img.dataset.fallback = '1'
+  img.src = '/favicon-sibling.svg'
+}, true)

@@ -1,4 +1,5 @@
 import { type PropsWithChildren } from '@kitajs/html'
+import type { SiblingView } from '../lib/siblings'
 import { BrandMark, Icon } from './parts'
 
 export type NavKey = 'repos' | 'templates' | 'sets' | 'audit' | 'settings'
@@ -25,6 +26,8 @@ export type LayoutProps = PropsWithChildren<{
   subnav?: { href: string; label: string; icon: string }[]
   /** Definite GitHub permission gaps (cached check): a danger counter on Settings and its GitHub entry. */
   githubGaps?: number
+  /** Octoforge sibling list: a switcher to Octoforge and every member (absent = not part of an Octoforge). */
+  siblings?: SiblingView
 }>
 
 const SAFE_ID = /^[a-z0-9-]+$/
@@ -37,6 +40,56 @@ const PROJECT = 'octowarden'
 export const seedTheme = (theme: Theme) =>
   `(function(){try{var t=${JSON.stringify(Object.fromEntries(Object.entries(theme).filter(([, v]) => typeof v === 'string' && SAFE_ID.test(v))))};for(var k in t){localStorage.setItem('${PROJECT}.'+k,t[k])}}catch(e){}})();`
 
+const SiblingIcon = ({ src }: { src?: string }) =>
+  src ? <img class="t-icon sibling-icon" src={src} alt="" width="16" height="16" loading="lazy" /> : <Icon id="bi-box-arrow-up-right" />
+
+/** Links to Octoforge and the other members; the current tool is marked, not linked. */
+const SiblingNav = ({ s }: { s: SiblingView }) => (
+  <>
+    <li class="t-sidebar-divider"></li>
+    <li class="t-sidebar-group">
+      Octoforge{' '}
+      {s.stale ? (
+        <span class="t-badge" data-size="xs" data-tone="warning" data-tip="Octoforge has not refreshed this list for a while">
+          stale
+        </span>
+      ) : null}
+    </li>
+    <li>
+      <a class="t-sidebar-item" href={s.forge.url} rel="noopener" data-sibling="octoforge">
+        <SiblingIcon src={s.forge.icon} />
+        <span class="t-sidebar-item-name" safe>
+          {s.forge.title}
+        </span>
+      </a>
+    </li>
+    {s.members.map((m) =>
+      m.self ? (
+        <li>
+          <span class="t-sidebar-item sibling-self" aria-current="true" data-sibling={m.name}>
+            <SiblingIcon src={m.icon} />
+            <span class="t-sidebar-item-name" safe>
+              {m.title}
+            </span>
+            <span class="t-badge" data-size="xs" data-tone="neutral">
+              this app
+            </span>
+          </span>
+        </li>
+      ) : (
+        <li>
+          <a class="t-sidebar-item" href={m.url} rel="noopener" data-sibling={m.name}>
+            <SiblingIcon src={m.icon} />
+            <span class="t-sidebar-item-name" safe>
+              {m.title}
+            </span>
+          </a>
+        </li>
+      ),
+    )}
+  </>
+)
+
 const GapCounter = ({ n }: { n?: number }) =>
   n ? (
     <span class="t-counter" data-tone="danger" data-github-gaps={String(n)} data-tip={`GitHub access lacks ${String(n)} permission${n === 1 ? '' : 's'}`}>
@@ -44,7 +97,7 @@ const GapCounter = ({ n }: { n?: number }) =>
     </span>
   ) : null
 
-export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav, githubGaps, children }: LayoutProps) => (
+export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav, githubGaps, siblings, children }: LayoutProps) => (
   <>
     {'<!doctype html>'}
     <html lang="en">
@@ -103,6 +156,7 @@ export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav,
                     </ul>
                   ) : null}
                 </li>
+                {siblings ? <SiblingNav s={siblings} /> : null}
               </ul>
             </nav>
           </aside>

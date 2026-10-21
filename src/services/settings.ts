@@ -22,6 +22,7 @@ export function settingProblem(key: SettingKey, value: string): string | undefin
   if (key === 'log_level' && !LOG_LEVELS.includes(value)) return `log_level: one of ${LOG_LEVELS.join(', ')}`
   if (key === 'github_auth_mode' && !(GITHUB_AUTH_MODES as readonly string[]).includes(value)) return `github_auth_mode: one of ${GITHUB_AUTH_MODES.join(', ')}`
   if (key === 'notify_discord_webhook' && value && !/^https:\/\//.test(value)) return 'notify_discord_webhook: must be an https URL'
+  if (key === 'octoforge_siblings' || key === 'github_credential_source') return `${key}: set by Octoforge, not editable`
   if (key === 'public_url' && value && !/^https?:\/\/[^\s/?#]+(\/[^\s?#]*)?$/.test(value)) return 'public_url: an http(s) URL without query, e.g. https://octowarden.example.com'
   if (key === 'ui_actor_header' && value && !/^[A-Za-z0-9-]{1,64}$/.test(value)) return 'ui_actor_header: a header name (letters, digits, dashes)'
   return undefined
