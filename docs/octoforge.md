@@ -16,8 +16,7 @@ Why these permissions (the full list with what breaks without each: [github-app.
 |---|---|
 | `administration: write` | repo settings, security toggles, rulesets, branch protection, topics, create and delete repos |
 | `contents: write` | template files and git hooks (signed commits) |
-| `pull_requests: write` | templates that propose files as a pull request |
-| `issues: write` | labels |
+| `pull_requests: write` | labels; templates that propose files as a pull request |
 | `repository_hooks: write` | webhooks |
 | `workflows: write` | template files under `.github/workflows/` |
 | `checks: read`, `statuses: read` | status check names for required-check pickers |

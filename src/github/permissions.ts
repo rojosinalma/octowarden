@@ -20,7 +20,7 @@ export type RequiredPermission = {
   features?: string[]
   /** The classic token scope that grants the same access. */
   scope: ClassicScope
-  /** Other `<key>:<level>` GitHub accepts for the same calls (labels: issues or pull requests). */
+  /** Other `<key>:<level>` GitHub accepts for the same calls (e.g. a broader level of another permission). */
   alternatives?: string[]
   /** Only these changes of `sections` need it (absent: the whole section, read included). */
   applies?: (change: Change) => boolean
@@ -55,22 +55,13 @@ export const REQUIRED_PERMISSIONS: readonly RequiredPermission[] = [
     scope: 'repo',
   },
   {
-    key: 'issues',
-    level: 'write',
-    why: 'Creates, changes and deletes labels (GitHub also accepts Pull requests write for labels).',
-    breaks: 'Labels are skipped, unless Pull requests write is granted.',
-    sections: ['labels'],
-    scope: 'repo',
-    alternatives: ['pull_requests:write'],
-  },
-  {
     key: 'pull_requests',
     level: 'write',
-    why: 'Opens the pull request when a file entry sets `pr`.',
-    breaks: 'File changes with `pr` are skipped; direct commits still work.',
-    sections: ['files'],
+    why: 'Creates, changes and deletes labels (GitHub accepts Pull requests write for labels, so Issues is not needed); opens the pull request when a file entry sets `pr`.',
+    breaks: 'Label changes and file changes with `pr` are skipped; direct commits still work.',
+    sections: ['labels', 'files'],
     scope: 'repo',
-    applies: (c) => Boolean((c.after as { pr?: unknown } | undefined)?.pr),
+    applies: (c) => c.section === 'labels' || Boolean((c.after as { pr?: unknown } | undefined)?.pr),
   },
   {
     key: 'repository_hooks',

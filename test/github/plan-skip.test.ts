@@ -70,7 +70,7 @@ describe('plan skips what the credential definitely cannot manage', () => {
     serveRepoReads(gh)
     const p = await plan({ repo: REPO, templates: ['gated'], library: lib, gh, access, ...ORIGIN })
     expect(p.skipped).toEqual([
-      { section: 'labels', reason: 'GitHub App lacks issues:write' },
+      { section: 'labels', target: 'triage', reason: 'GitHub App lacks pull_requests:write' },
       { section: 'webhooks', reason: 'GitHub App lacks repository_hooks:write' },
       { section: 'files', target: '.github/workflows/ci.yml', reason: 'GitHub App lacks workflows:write' },
       { section: 'files', target: 'CONTRIBUTING.md', reason: 'GitHub App lacks pull_requests:write' },

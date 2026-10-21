@@ -22,7 +22,7 @@ afterEach(() => {
   setStatusAppFactory(undefined)
 })
 
-/** App credentials in settings, served by fakes with the recorded installations (one lacks issues and more). */
+/** App credentials in settings, served by fakes with the recorded installations (one lacks pull requests and more). */
 async function recordedApp() {
   setGitHubClient(undefined)
   await setSetting('github_auth_mode', 'app')
@@ -44,7 +44,7 @@ describe('settings: GitHub access', () => {
     await recordedApp()
     const r = await req('GET', '/settings')
     expect(r.status).toBe(200)
-    expect(r.text).toContain('data-github-state="5 missing"')
+    expect(r.text).toContain('data-github-state="4 missing"')
     expect(r.text).toContain('id="github-installations"')
     expect(r.text).toContain('data-installation="90000002"')
     expect(r.text).toContain('href="https://github.com/organizations/octo-org/settings/installations/90000002"')
@@ -57,9 +57,9 @@ describe('settings: GitHub access', () => {
     expect(r.text).toContain('data-action="github-recheck"')
     expect(r.text).toContain('href="https://github.com/settings/apps/octoforge-app"')
     // Sidebar counter on the GitHub entry of the settings sub-navigation.
-    expect(r.text).toMatch(/href="\/settings#github"[\s\S]{0,400}data-github-gaps="5"/)
+    expect(r.text).toMatch(/href="\/settings#github"[\s\S]{0,400}data-github-gaps="4"/)
     // Other pages carry it on the Settings item once a check ran.
-    expect((await req('GET', '/templates')).text).toContain('data-github-gaps="5"')
+    expect((await req('GET', '/templates')).text).toContain('data-github-gaps="4"')
     // The App exists: the manifest block is collapsed.
     expect(r.text).toMatch(/<details class="t-card" data-variant="collapsible" id="github-manifest">/)
   })
@@ -102,7 +102,7 @@ describe('settings: GitHub access', () => {
     await req('GET', '/settings')
     const r = await req('POST', '/ui/actions/github/recheck')
     expect(r.status).toBe(200)
-    expect(r.body).toMatchObject({ ok: true, gaps: 5, message: 'GitHub access lacks issues:write, pull_requests:write, repository_hooks:write, statuses:read, members:read' })
+    expect(r.body).toMatchObject({ ok: true, gaps: 4, message: 'GitHub access lacks pull_requests:write, repository_hooks:write, statuses:read, members:read' })
     expect(r.body.html).toContain('id="github-access"')
     expect(r.body.badge).toContain('id="github-state"')
     expect(jwt.calls.filter((c) => c.route === 'GET /app')).toHaveLength(2)

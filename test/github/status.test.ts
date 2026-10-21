@@ -39,25 +39,26 @@ describe('GitHub App', () => {
         type: 'org',
         repository_selection: 'selected',
         repo_count: 3,
-        missing: ['issues:write', 'pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'],
+        missing: ['pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'],
         url: 'https://github.com/organizations/octo-org/settings/installations/90000002',
       },
     ])
     // The repo count costs one call on the "selected" installation only.
     expect(w.installations.has(90000001)).toBe(false)
     expect(w.installations.get(90000002)!.calls).toEqual([{ route: 'GET /installation/repositories', params: { per_page: 1 } }])
-    expect(s.missing).toEqual(['issues:write', 'pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'])
+    expect(s.missing).toEqual(['pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'])
     expect(s.ok).toBe(false)
     expect(row(s, 'repository_hooks')).toMatchObject({ granted: 'none', ok: false, sections: ['webhooks'] })
     expect(row(s, 'administration')).toMatchObject({ granted: 'write', ok: true })
     expect(s.install_url).toBe('https://github.com/settings/installations/90000001')
   })
 
-  test('an App without issues:write but with pull_requests:write is satisfied via the alternative', async () => {
+  test('an App with pull_requests:write covers labels without issues', async () => {
     const [one] = await fixture<unknown[]>('github/installations')
     await appWorld({ installations: [one] })
     const s = await probeGitHubStatus()
-    expect(row(s, 'issues')).toMatchObject({ granted: 'none', ok: true, via: 'pull_requests:write' })
+    expect(row(s, 'issues')).toBeUndefined()
+    expect(row(s, 'pull_requests')).toMatchObject({ ok: true })
     expect(s.missing).toEqual(['repository_hooks:write', 'statuses:read'])
     expect(row(s, 'members')).toMatchObject({ ok: true, note: 'organization permission: no organization installation' })
   })
@@ -115,9 +116,9 @@ describe('GitHub App', () => {
     await appWorld()
     const s = await probeGitHubStatus()
     expect(gapsFor(s, 'octo-example').map((g) => g.reason)).toEqual(['GitHub App lacks repository_hooks:write', 'GitHub App lacks statuses:read'])
-    expect(gapsFor(s, 'OCTO-ORG').map((g) => g.permission.key)).toEqual(['issues', 'pull_requests', 'repository_hooks', 'statuses', 'members'])
+    expect(gapsFor(s, 'OCTO-ORG').map((g) => g.permission.key)).toEqual(['pull_requests', 'repository_hooks', 'statuses', 'members'])
     // An owner without an installation falls back to the overall rows.
-    expect(gapsFor(s, 'someone-else').length).toBe(5)
+    expect(gapsFor(s, 'someone-else').length).toBe(4)
   })
 
   test('contractPermissions: what /api/octoforge/status carries', async () => {

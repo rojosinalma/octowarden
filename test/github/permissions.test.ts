@@ -72,17 +72,16 @@ describe('grant evaluation', () => {
     expect(permissionState(undefined, p)).toEqual({ granted: 'unknown', ok: null })
   })
 
-  test('labels: pull_requests:write is accepted instead of issues:write', () => {
-    const issues = REQUIRED_PERMISSIONS.find((x) => x.key === 'issues')!
-    expect(permissionState({ pull_requests: 'write' }, issues)).toEqual({ granted: 'none', ok: true, via: 'pull_requests:write' })
-    expect(permissionState({ pull_requests: 'read' }, issues).ok).toBe(false)
+  test('labels need pull_requests:write; issues is never asked for', () => {
+    expect(REQUIRED_PERMISSIONS.some((x) => x.key === 'issues')).toBe(false)
+    expect(REQUIRED_PERMISSIONS.find((x) => x.key === 'pull_requests')!.sections).toContain('labels')
   })
 
   test('missingGrants of the recorded OctoForge App', () => {
     const app = { actions: 'write', administration: 'write', checks: 'read', contents: 'write', metadata: 'read', pull_requests: 'write', workflows: 'write' }
     expect(missingGrants(app)).toEqual(['repository_hooks:write', 'statuses:read', 'members:read'])
     const { pull_requests: _, ...noPr } = app
-    expect(missingGrants(noPr)).toEqual(['issues:write', 'pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'])
+    expect(missingGrants(noPr)).toEqual(['pull_requests:write', 'repository_hooks:write', 'statuses:read', 'members:read'])
     expect(missingGrants(undefined)).toEqual([])
     expect(missingGrants(app, 'user')).toEqual(['repository_hooks:write', 'statuses:read'])
   })

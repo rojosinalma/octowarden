@@ -15,8 +15,7 @@ and `octoforge.json` and the App manifest are generated from the same list.
 |---|---|---|---|---|
 | `administration` | write | `settings`, `security`, `rulesets`, `protection`, `topics`, repo create (organization), repo delete | Changes repo settings, topics, security features, rulesets and branch protection; creates repos in an organization and deletes repos. | Settings, topics, security, rulesets and protection are skipped; repos cannot be created in an organization or deleted. |
 | `contents` | write | `files`, `githooks`, branch picker | Reads files and branches; commits files and git hooks as one verified commit; creates the branch of a pull request. | Files and git hooks are skipped; the branch picker stays empty. |
-| `issues` | write | `labels` | Creates, changes and deletes labels (GitHub also accepts Pull requests write for labels). | Labels are skipped, unless Pull requests write is granted. |
-| `pull_requests` | write | `files` | Opens the pull request when a file entry sets `pr`. | File changes with `pr` are skipped; direct commits still work. |
+| `pull_requests` | write | `labels`, `files` | Creates, changes and deletes labels (GitHub accepts Pull requests write for labels, so Issues is not needed); opens the pull request when a file entry sets `pr`. | Label changes and file changes with `pr` are skipped; direct commits still work. |
 | `repository_hooks` | write | `webhooks` | Lists, creates, changes and deletes repository webhooks. | Webhooks are skipped. |
 | `workflows` | write | `files` | GitHub requires it to write any file under .github/workflows. | File changes under .github/workflows are skipped; other files still work. |
 | `actions` | read | environment picker | Lists the environments of a repo for the deployment pickers. | The environment picker stays empty; nothing else changes. |
@@ -79,7 +78,6 @@ The manifest Settings uses, with `<PUBLIC_URL>` for the address of your octoward
   "default_permissions": {
     "administration": "write",
     "contents": "write",
-    "issues": "write",
     "pull_requests": "write",
     "repository_hooks": "write",
     "workflows": "write",
