@@ -1,0 +1,20 @@
+# Development overlay: builds the dev image and mounts the checkout at /app with `bun --watch`.
+#   docker compose -f compose.yaml -f compose.dev.yaml up -d --build
+services:
+  octowarden:
+    image: !reset null
+    build:
+      context: .
+      target: dev
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+        bind:
+          create_host_path: false
+      - type: volume
+        source: node_modules
+        target: /app/node_modules
+
+volumes:
+  node_modules:

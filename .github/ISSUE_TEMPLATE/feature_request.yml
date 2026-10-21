@@ -1,0 +1,41 @@
+name: Feature request
+description: Propose a change or an addition
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What repository setting or workflow can you not manage with Octowarden today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: How should it work? A new template section, a field in an existing one, a CLI flag, a notifier, an auth method…
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Template sections
+        - Templates / sets / YAML format
+        - Web UI
+        - CLI
+        - API / MCP
+        - Audit and drift
+        - Authentication (PAT, gh, GitHub App)
+        - Notifiers
+        - Docker / deployment
+        - Other
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Check
+      options:
+        - label: I searched existing issues and discussions.

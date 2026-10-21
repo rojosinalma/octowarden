@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Bundles the CLI into one executable file (needs Bun at runtime): bin/bundle-cli <out-file>
+set -euo pipefail
+out="${1:?usage: bin/bundle-cli <out-file>}"
+case "$out" in /*) ;; *) out="$PWD/$out" ;; esac
+cd "$(dirname "$0")/.."
+# bin/octowarden has no extension, so the bundle starts from the module it imports.
+bun build src/cli/bin.ts --target bun --outfile "$out"
+head -1 "$out" | grep -q '^#!' || { printf '#!/usr/bin/env bun\n' | cat - "$out" > "$out.tmp" && mv "$out.tmp" "$out"; }
+chmod +x "$out"
+echo "bundled $out ($(wc -c < "$out") bytes)"

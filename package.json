@@ -1,0 +1,39 @@
+{
+  "name": "octowarden",
+  "version": "0.1.0",
+  "description": "GitHub repo configuration manager: reusable templates for settings, security, rulesets, labels, webhooks and files, applied to one repo or many, with plan, apply, drift audit and an audit trail.",
+  "type": "module",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rojosinalma/octowarden.git"
+  },
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "typecheck": "bunx tsc --noEmit",
+    "test": "for d in test/*/; do ls \"$d\"*.test.ts >/dev/null 2>&1 || continue; bun test \"$d\" || exit 1; done",
+    "verify": "bin/verify"
+  },
+  "dependencies": {
+    "@elysiajs/html": "1.4.2",
+    "@kitajs/html": "4.2.13",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@octokit/auth-app": "8.3.1",
+    "@octokit/graphql": "9.0.5",
+    "@octokit/rest": "22.0.1",
+    "elysia": "1.4.30",
+    "kysely": "0.29.7",
+    "kysely-postgres-js": "5.0.1",
+    "postgres": "3.4.9",
+    "prom-client": "15.1.3",
+    "yaml": "2.9.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@kitajs/ts-html-plugin": "4.1.4",
+    "@types/bun": "1.4.3",
+    "typescript": "7.0.2"
+  }
+}

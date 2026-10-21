@@ -1,0 +1,23 @@
+apiVersion: octowarden/v1
+kind: Template
+metadata:
+  name: protect-main
+  description: 'Ruleset "protect-main" on the default branch: no deletion, no force push, signed commits, required checks from the value required_checks (comma-separated, empty for none), admins may bypass. Private repos need GitHub Pro or higher.'
+spec:
+  sections:
+    rulesets:
+      rulesets:
+        - name: protect-main
+          target: branch
+          enforcement: active
+          conditions:
+            ref_name:
+              include: ['~DEFAULT_BRANCH']
+              exclude: []
+          rules:
+            deletion: true
+            non_fast_forward: true
+            required_signatures: true
+            required_status_checks:
+              contexts: '${{ values.required_checks }}'
+          bypass_actors: [admin]

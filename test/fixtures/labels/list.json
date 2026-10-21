@@ -1,0 +1,5 @@
+[
+  { "id": 9000001, "node_id": "LA_1", "url": "https://api.github.com/repos/octo-example/demo/labels/bug", "name": "bug", "color": "d73a4a", "default": true, "description": "Something isn't working" },
+  { "id": 9000002, "node_id": "LA_2", "url": "https://api.github.com/repos/octo-example/demo/labels/Documentation", "name": "Documentation", "color": "0075ca", "default": true, "description": "Improvements or additions to documentation" },
+  { "id": 9000003, "node_id": "LA_3", "url": "https://api.github.com/repos/octo-example/demo/labels/wontfix", "name": "wontfix", "color": "ffffff", "default": true, "description": null }
+]

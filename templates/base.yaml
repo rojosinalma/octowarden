@@ -1,0 +1,18 @@
+apiVersion: octowarden/v1
+kind: Template
+metadata:
+  name: base
+  description: Squash merges only with the PR title and body as the commit message, branches deleted on merge, auto-merge and update-branch on, wiki and projects off.
+spec:
+  sections:
+    settings:
+      allow_squash_merge: true
+      allow_merge_commit: false
+      allow_rebase_merge: false
+      squash_merge_commit_title: PR_TITLE
+      squash_merge_commit_message: PR_BODY
+      delete_branch_on_merge: true
+      allow_auto_merge: true
+      allow_update_branch: true
+      has_wiki: false
+      has_projects: false

@@ -1,0 +1,14 @@
+{
+  "type": "file",
+  "encoding": "base64",
+  "size": 29,
+  "name": "SECURITY.md",
+  "path": "SECURITY.md",
+  "content": "IyBTZWN1cml0eSBwb2xpY3kKCk9sZCB0ZXh0Lgo=\n",
+  "sha": "d47dade52f95fe5e617ee7d8ef501de8e499e926",
+  "url": "https://api.github.com/repos/octo-example/demo/contents/SECURITY.md?ref=main",
+  "git_url": "https://api.github.com/repos/octo-example/demo/git/blobs/d47dade52f95fe5e617ee7d8ef501de8e499e926",
+  "html_url": "https://github.com/octo-example/demo/blob/main/SECURITY.md",
+  "download_url": "https://raw.githubusercontent.com/octo-example/demo/main/SECURITY.md",
+  "_links": {}
+}

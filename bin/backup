@@ -1,0 +1,40 @@
+#!/usr/bin/env bun
+// Consistent SQLite snapshot (VACUUM INTO), integrity-checked; keeps the newest `backup_keep` files in
+// `backup_dir` (default <DATA_DIR>/backups). Exit 1 with a reason on any failure. Postgres: use pg_dump.
+import { Database } from 'bun:sqlite'
+import { existsSync, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { join } from 'node:path'
+import { closeDb, dbHandle } from '../src/db'
+import { boot } from '../src/lib/boot'
+import { config } from '../src/lib/config'
+import { log } from '../src/lib/log'
+import { getSetting, getSettingInt } from '../src/lib/settings'
+
+const blog = log.child('backup')
+
+async function main(): Promise<void> {
+  const cfg = config()
+  if (!cfg.databaseUrl.startsWith('sqlite:')) throw new Error('bin/backup supports SQLite only; back up Postgres with pg_dump')
+  await boot(cfg)
+  const dir = (await getSetting('backup_dir')) || join(cfg.dataDir, 'backups')
+  const keep = await getSettingInt('backup_keep')
+  if (!existsSync(dir) || !statSync(dir).isDirectory()) throw new Error(`${dir} is missing (is the backup volume mounted?)`)
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace('.', '')
+  const path = join(dir, `octowarden-${stamp}.db`)
+  await dbHandle().kysely.executeQuery({ sql: 'VACUUM INTO ?', parameters: [path], query: { kind: 'RawNode' } } as never)
+  const snap = new Database(path, { readonly: true })
+  const check = (snap.query('PRAGMA integrity_check').get() as { integrity_check: string }).integrity_check
+  snap.close()
+  if (check !== 'ok') throw new Error(`${path}: integrity_check ${check}`)
+  const old = readdirSync(dir).filter((f) => /^octowarden-\d{8}T\d{9}Z\.db$/.test(f)).sort().slice(0, -keep)
+  for (const f of old) unlinkSync(join(dir, f))
+  blog.info(`${path} (${statSync(path).size} B), pruned ${old.length}`)
+}
+
+main()
+  .then(() => closeDb())
+  .catch(async (err: Error) => {
+    blog.error(err.message)
+    await closeDb().catch(() => {})
+    process.exit(1)
+  })

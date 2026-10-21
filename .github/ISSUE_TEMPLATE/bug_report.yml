@@ -1,0 +1,64 @@
+name: Bug report
+description: Something does not work as documented
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for the report. Remove any GitHub token, App key or webhook secret from logs and templates before pasting.
+  - type: input
+    id: version
+    attributes:
+      label: Octowarden version
+      description: From `GET /health` (`version`), `octowarden --version` or the image tag.
+      placeholder: 0.1.0 / ghcr.io/rojosinalma/octowarden:latest
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      multiple: true
+      options:
+        - Web UI
+        - CLI
+        - JSON API
+        - MCP
+        - Scheduled audit
+    validations:
+      required: true
+  - type: dropdown
+    id: section
+    attributes:
+      label: Template section
+      multiple: true
+      options:
+        - settings
+        - security
+        - rulesets
+        - protection
+        - labels
+        - topics
+        - webhooks
+        - files
+        - githooks
+        - none / not section-specific
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, what you got. Include the plan output if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: template
+    attributes:
+      label: Template or set (YAML)
+      description: The smallest template that shows the problem. Secrets removed.
+      render: yaml
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant `[github]` / `[apply]` log lines.
+      render: text

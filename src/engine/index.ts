@@ -1,0 +1,5 @@
+export { plan, buildPlan, implicitValues } from './plan'
+export { apply, sync, checkConfirm } from './apply'
+export { audit } from './audit'
+export { resolveSet, resolveTarget } from './resolve'
+export type * from './types'

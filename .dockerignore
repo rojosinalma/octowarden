@@ -1,0 +1,22 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+data
+node_modules
+dist
+coverage
+docs
+test
+*.md
+.idea
+.vscode
+.DS_Store
+compose.override.yaml
+
+# starter template files are part of the image
+!templates/**
+compose.host.yaml

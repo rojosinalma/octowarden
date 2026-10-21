@@ -1,0 +1,9 @@
+apiVersion: octowarden/v1
+kind: Set
+metadata:
+  name: house
+  description: base + security + protect-main. The required check defaults to `check`; override required_checks per repo.
+spec:
+  templates: [base, security, protect-main]
+  values:
+    required_checks: check

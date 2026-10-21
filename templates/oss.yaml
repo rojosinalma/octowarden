@@ -1,0 +1,26 @@
+apiVersion: octowarden/v1
+kind: Template
+metadata:
+  name: oss
+  description: 'Extras for public open-source repos: discussions on, pull request and issue templates, CODEOWNERS and SECURITY.md (the last two only when missing).'
+spec:
+  requires:
+    visibility: public
+  sections:
+    settings:
+      has_discussions: true
+    files:
+      - path: .github/pull_request_template.md
+        content_ref: pull_request_template.md
+      - path: .github/ISSUE_TEMPLATE/config.yml
+        content_ref: issue_config.yml
+      - path: .github/ISSUE_TEMPLATE/bug_report.yml
+        content_ref: bug_report.yml
+      - path: .github/ISSUE_TEMPLATE/feature_request.yml
+        content_ref: feature_request.yml
+      - path: .github/CODEOWNERS
+        content_ref: CODEOWNERS
+        mode: create
+      - path: SECURITY.md
+        content_ref: SECURITY.md
+        mode: create

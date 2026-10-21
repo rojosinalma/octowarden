@@ -1,0 +1,55 @@
+{
+  "contract": 1,
+  "name": "octowarden",
+  "title": "Octowarden",
+  "description": "GitHub repo configuration manager: reusable templates for settings, security, rulesets, labels, webhooks and files, applied to one repo or many, with plan, apply, drift audit and an audit trail.",
+  "icon": "/favicon.svg",
+  "health": "/health",
+  "github": {
+    "auth": ["app", "pat"],
+    "app": {
+      "permissions": {
+        "administration": "write",
+        "contents": "write",
+        "issues": "write",
+        "pull_requests": "write",
+        "repository_hooks": "write",
+        "workflows": "write",
+        "checks": "read",
+        "statuses": "read",
+        "environments": "read",
+        "members": "read",
+        "metadata": "read"
+      },
+      "events": [],
+      "setup_path": "/"
+    },
+    "pat": {
+      "classic_scopes": ["repo", "admin:repo_hook", "delete_repo", "workflow", "read:org"],
+      "fine_grained": {
+        "administration": "write",
+        "contents": "write",
+        "issues": "write",
+        "pull_requests": "write",
+        "repository_hooks": "write",
+        "workflows": "write",
+        "checks": "read",
+        "statuses": "read",
+        "environments": "read",
+        "members": "read",
+        "metadata": "read"
+      },
+      "user_identity": false
+    }
+  },
+  "database": { "engines": ["sqlite", "postgres"], "schema": true },
+  "env": {
+    "github_token": "GITHUB_TOKEN",
+    "app_id": "GITHUB_APP_ID",
+    "app_private_key": "GITHUB_APP_PRIVATE_KEY",
+    "app_installation_id": "GITHUB_APP_INSTALLATION_ID",
+    "app_webhook_secret": "GITHUB_WEBHOOK_SECRET",
+    "database_url": "DATABASE_URL",
+    "database_schema": "DATABASE_SCHEMA"
+  }
+}

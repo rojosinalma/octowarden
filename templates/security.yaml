@@ -1,0 +1,13 @@
+apiVersion: octowarden/v1
+kind: Template
+metadata:
+  name: security
+  description: Dependabot alerts and security updates, secret scanning with push protection where the plan allows it, private vulnerability reporting on public repos.
+spec:
+  sections:
+    security:
+      vulnerability_alerts: true
+      automated_security_fixes: true
+      secret_scanning: true
+      secret_scanning_push_protection: true
+      private_vulnerability_reporting: true

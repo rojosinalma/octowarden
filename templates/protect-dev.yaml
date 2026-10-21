@@ -1,0 +1,24 @@
+apiVersion: octowarden/v1
+kind: Template
+metadata:
+  name: protect-dev
+  description: 'Ruleset "protect-dev" on the dev branch when it exists: no deletion, no force push, signed commits, required checks from the value required_checks, admins may bypass. Private repos need GitHub Pro or higher.'
+spec:
+  sections:
+    rulesets:
+      rulesets:
+        - name: protect-dev
+          target: branch
+          enforcement: active
+          if_branch_exists: true
+          conditions:
+            ref_name:
+              include: [refs/heads/dev]
+              exclude: []
+          rules:
+            deletion: true
+            non_fast_forward: true
+            required_signatures: true
+            required_status_checks:
+              contexts: '${{ values.required_checks }}'
+          bypass_actors: [admin]

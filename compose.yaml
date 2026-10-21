@@ -1,0 +1,32 @@
+# Octowarden — run it with:
+#   cp .env.example .env     # set API_TOKEN; add a GitHub token here or later in Settings
+#   mkdir -p data
+#   docker compose up -d
+# Then open http://localhost:3000. Put the UI behind your reverse proxy's authentication:
+# it has no login of its own and can change or delete repositories. Configuration: docs/configuration.md.
+services:
+  octowarden:
+    # Pinned to the current release; release PRs bump it. Use `:latest` to follow every release.
+    image: ghcr.io/rojosinalma/octowarden:0.1.0 # x-release-please-version
+    # Development: add compose.dev.yaml (`docker compose -f compose.yaml -f compose.dev.yaml up -d`).
+    container_name: octowarden
+    restart: unless-stopped
+    ports:
+      # OCTOWARDEN_BIND / OCTOWARDEN_PORT may be set in .env; the server inside always listens on 3000.
+      - "${OCTOWARDEN_BIND:-127.0.0.1}:${OCTOWARDEN_PORT:-3000}:3000"
+    volumes:
+      # The app reads /app/.env itself, so secrets never land in the compose configuration.
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+      # SQLite database and the octoforge adoption file; keep it on local disk, not on NFS.
+      - type: bind
+        source: ./data
+        target: /app/data
+        bind:
+          create_host_path: false
+    mem_limit: ${OCTOWARDEN_MEM:-256m}
+    cpus: ${OCTOWARDEN_CPUS:-0.5}
