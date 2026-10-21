@@ -141,6 +141,19 @@ keys at once and answers the same shape. Values are strings: integers as digits,
 `true`/`false`. Every key is checked before any is written. Secrets show as `set` or `""`; sending `set`
 back leaves a secret unchanged, `""` clears it.
 
+## GitHub access
+
+`GET /api/github/status` → `{ok, message, status}`: what the active credential grants against what
+octowarden needs. `?refresh=1` (or `POST /api/github/recheck`) asks GitHub now instead of the cache
+(`github_status_ttl_min`). `status` carries `mode`, `source`, `delivered`, `kind` (`app`, `pat-classic`,
+`pat-fine-grained`), `identity`, `app_slug`, links (`app_url`, `permissions_url`, `install_url`,
+`new_install_url`), `installations` (`{id, account, type, repository_selection, repo_count, missing, url}`),
+`permissions` (rows `{key, level, granted, ok, why, breaks, sections}`; `ok` is `true`, `false` or `null`
+for unknown), `missing` (`["issues:write", …]`, definite gaps only), classic tokens also `scopes` and
+`missing_scopes`, then `checked_at` and `error` when GitHub could not be asked. The call never fails for a
+GitHub reason: an unreachable GitHub gives unknown rows, an empty `missing` and `error`. Details:
+[github-app.md](github-app.md).
+
 ## Stream
 
 `GET /api/stream` (bearer) and `GET /ui/stream` (no bearer, for the web UI behind your proxy) are
@@ -160,7 +173,7 @@ seconds without data, and a `: ping` comment every 25 s keeps proxies from closi
 ## Health and metrics
 
 `GET /health` (no auth) → `200 {ok, db, version, github}` or `503` when the database fails. GitHub state
-is informative only.
+is informative only; `github.missing` lists definite permission gaps once an access check has run.
 
 `GET /metrics` (no auth) serves Prometheus text: `octowarden_repos{drift_state}`,
 `octowarden_applies_total{outcome}`, `octowarden_runs_total{kind,status}`,

@@ -3,6 +3,7 @@ import { ValidationError } from '../../lib/json'
 import { setDocSchema, templateDocSchema, toYaml, type Document } from '../../templates/schema'
 import * as svc from '../../services'
 import { PlanDiff } from '../../views/diff'
+import { gapCount, GitHubAccess, GitHubStateBadge } from '../../views/github'
 import { ApplyReportView } from '../../views/repo'
 import { plural } from '../../views/parts'
 import type { PlanView } from '../../views/types'
@@ -121,6 +122,12 @@ export function registerActions<A extends AnyElysia>(app: A): A {
       action(async () => {
         const installations = await listInstallations()
         return { message: `${plural(installations.length, 'installation')} found`, installations }
+      }),
+    )
+    .post(`${P}/github/recheck`, () =>
+      action(async () => {
+        const status = await svc.githubStatus({ refresh: true })
+        return { message: svc.statusMessage(status), status, html: await (<GitHubAccess status={status} />), badge: await (<GitHubStateBadge status={status} id="github-state" />), gaps: gapCount(status) }
       }),
     )
     .get(`${P}/sets/lookups`, ({ query }) =>

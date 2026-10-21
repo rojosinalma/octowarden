@@ -12,7 +12,9 @@ import { SettingsPage, settingsSubnav } from '../../views/settings'
 import { TemplateEditPage, TemplatesPage } from '../../views/templates'
 import type { Lookups, SectionInfo, SetView, TemplateView } from '../../views/types'
 import { appCredentials } from '../../auth/providers/app'
-import { auth, guarded, html, page } from './shared'
+import { appManifest, APP_CREATED_PATH, publicBase } from '../../github/manifest'
+import type { AppCreatedView, ManifestView } from '../../views/github'
+import { auth, ctxOf, guarded, html, page } from './shared'
 import { mergeFields, valueFields } from './values'
 
 const q = (query: Record<string, string | undefined>, k: string) => {
@@ -139,10 +141,42 @@ export async function auditPage(query: Record<string, string | undefined>): Prom
   )
 }
 
-export async function settingsPage(): Promise<Response> {
-  const [settings, a, repos, app] = await Promise.all([svc.listSettings(), auth(), svc.listRepos().catch(() => []), appCredentials().catch(() => undefined)])
+export async function settingsPage(origin: string, appCreated?: AppCreatedView): Promise<Response> {
+  const [settings, a, repos, app, github, who] = await Promise.all([
+    svc.listSettings(),
+    auth(),
+    svc.listRepos().catch(() => []),
+    appCredentials().catch(() => undefined),
+    svc.githubStatus(),
+    svc.manifestOwners(),
+  ])
   const list = owners(repos, settings.default_owner)
-  return page('settings', 'Settings', <SettingsPage settings={settings} auth={a} owners={list} version={VERSION} appReady={app !== undefined} />, { subnav: settingsSubnav(list) })
+  const manifest: ManifestView = {
+    json: JSON.stringify(appManifest(publicBase(settings.public_url, origin)), null, 2),
+    state: svc.manifestState(),
+    orgs: who.orgs,
+    login: who.login,
+    configured: app !== undefined,
+  }
+  return page(
+    'settings',
+    'Settings',
+    <SettingsPage settings={settings} auth={a} owners={list} version={VERSION} appReady={app !== undefined} github={github} manifest={manifest} appCreated={appCreated} />,
+    { subnav: settingsSubnav(list) },
+  )
+}
+
+/** GitHub's redirect after "Create the App on GitHub": convert the code, store the App, show Settings with the outcome. */
+export async function appCreatedPage(request: Request, query: Record<string, string | undefined>): Promise<Response> {
+  const origin = new URL(request.url).origin
+  let result: AppCreatedView
+  try {
+    const app = await svc.convertManifest(query.code, query.state, await ctxOf(request))
+    result = { ok: true, slug: app.slug, install_url: app.install_url }
+  } catch (err) {
+    result = { ok: false, message: (err as Error).message }
+  }
+  return settingsPage(origin, result)
 }
 
 /** Page routes: GET only, HTML. */
@@ -158,5 +192,6 @@ export function registerPages<A extends AnyElysia>(app: A): A {
     .get('/sets/new', ({ query }) => guarded('sets', () => setNewPage(q(query as Record<string, string>, 'from'))))
     .get('/sets/:name', ({ params }) => guarded('sets', () => setEditPage(params.name)))
     .get('/audit', ({ query }) => guarded('audit', () => auditPage(query as Record<string, string>)))
-    .get('/settings', () => guarded('settings', settingsPage)) as A
+    .get('/settings', ({ request }) => guarded('settings', () => settingsPage(new URL(request.url).origin)))
+    .get(APP_CREATED_PATH, ({ request, query }) => guarded('settings', () => appCreatedPage(request, query as Record<string, string>))) as A
 }

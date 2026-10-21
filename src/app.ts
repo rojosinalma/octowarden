@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia'
 import { codeFor, errBody, errorResult, validationMessage } from './lib/json'
+import { watchGitHubStatus } from './github/status'
 import { log } from './lib/log'
 import * as api from './routes/api'
 import * as health from './routes/health'
@@ -35,6 +36,7 @@ export function createApp() {
       if (path === '/health' || path === '/metrics') logger.debug(line)
       else logger.info(line)
     })
+  watchGitHubStatus()
   health.register(app)
   metrics.register(app)
   octoforge.register(app)

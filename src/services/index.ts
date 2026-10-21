@@ -25,5 +25,7 @@ export { startBulk, startAudit, assignedRepos, activeBulkRuns, drainBulk, waitFo
 export { listRuns, getRun, listEvents, SOURCES, OUTCOMES, type EventQuery, type Event, type Run } from './runs'
 export { exportYaml, importYaml, type ExportRequest, type ImportCounts } from './portability'
 export { listSettings, updateSettings, type PublicSettings } from './settings'
+export { githubStatus, statusMessage, convertManifest, manifestState, manifestOwners, appConfigured, setConversionClient, type CreatedApp } from './github'
+export type { GitHubStatus } from '../github/status'
 export { listSectionInfo, type SectionInfo } from './sections'
 export type { Plan, ApplyReport } from '../engine/types'

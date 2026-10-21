@@ -4,6 +4,8 @@ import { errorResult } from '../../lib/json'
 import { log } from '../../lib/log'
 import { allSettings } from '../../lib/settings'
 import { VERSION } from '../../lib/version'
+import { peekGitHubStatus } from '../../github/status'
+import { gapCount } from '../../views/github'
 import { uiCtx, type Ctx } from '../../services'
 import { Layout, type NavKey } from '../../views/layout'
 import { Empty, Icon } from '../../views/parts'
@@ -34,7 +36,15 @@ export async function auth(): Promise<AuthView> {
 export async function page(active: NavKey, title: string, body: JSX.Element | Promise<JSX.Element>, opts: { subnav?: { href: string; label: string; icon: string }[]; status?: number } = {}): Promise<Response> {
   const [settings, tailor, content] = await Promise.all([allSettings().catch(() => ({}) as Record<string, string>), head(), body])
   const doc = await (
-    <Layout title={title} active={active} tailorHead={tailor} version={VERSION} theme={{ skin: settings['ui_skin'], palette: settings['ui_palette'], mode: settings['ui_mode'] }} subnav={opts.subnav}>
+    <Layout
+      title={title}
+      active={active}
+      tailorHead={tailor}
+      version={VERSION}
+      theme={{ skin: settings['ui_skin'], palette: settings['ui_palette'], mode: settings['ui_mode'] }}
+      subnav={opts.subnav}
+      githubGaps={gapCount(peekGitHubStatus())}
+    >
       {content}
     </Layout>
   )

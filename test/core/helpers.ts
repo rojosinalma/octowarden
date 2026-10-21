@@ -2,6 +2,7 @@
 import { setGitHubClient } from '../../src/auth/providers'
 import { closeDb, type DbHandle } from '../../src/db'
 import { createFakeGitHub, type FakeGitHub } from '../../src/github/fake'
+import { invalidateGitHubStatus, setStatusAppFactory } from '../../src/github/status'
 import { boot } from '../../src/lib/boot'
 import { bus } from '../../src/lib/bus'
 import { loadConfig, setConfig, type Config } from '../../src/lib/config'
@@ -23,6 +24,8 @@ export async function fresh(env: Record<string, string> = {}): Promise<World> {
   await closeDb()
   resetSettingsCache()
   bus.clear()
+  invalidateGitHubStatus()
+  setStatusAppFactory(undefined)
   setLogLevel('error')
   const config = loadConfig({ ...TEST_ENV, ...env })
   setConfig(config)

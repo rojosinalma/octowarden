@@ -1,3 +1,5 @@
+import type { GitHubStatus } from '../github/status'
+import { AppCreatedAlert, GitHubAccess, GitHubStateBadge, ManifestBlock, type AppCreatedView, type ManifestView } from './github'
 import { Help, Icon, PageHeader, RelTime } from './parts'
 import type { AuthView } from './types'
 
@@ -39,7 +41,7 @@ export const SETTING_GROUPS = (owners: string[]): Group[] => [
       {
         key: 'github_token',
         label: 'Personal access token',
-        help: 'Fine-grained or classic token. Needs Administration, Contents, Metadata and Pull requests (write) on the repos it manages; deleting repos also needs the delete permission.',
+        help: 'Fine-grained or classic token. The permission table above lists what it needs; a classic token needs repo, admin:repo_hook, delete_repo, workflow and read:org.',
         tone: 'danger',
         control: { kind: 'secret', placeholder: 'github_pat_…' },
       },
@@ -69,6 +71,18 @@ export const SETTING_GROUPS = (owners: string[]): Group[] => [
         label: 'Default owner',
         help: 'Owner preselected when you create a repo. Empty: the credential’s own account.',
         control: { kind: 'select', options: [{ value: '', label: 'The credential’s account' }, ...owners.map((o) => ({ value: o, label: o }))], other: true },
+      },
+      {
+        key: 'public_url',
+        label: 'Public URL',
+        help: 'The address browsers use to reach octowarden; GitHub sends you back here after creating the App. Empty: the address of the page you are on.',
+        control: { kind: 'text', placeholder: 'https://octowarden.example.com' },
+      },
+      {
+        key: 'github_status_ttl_min',
+        label: 'Re-check access every',
+        help: 'How long the granted permissions are reused before GitHub is asked again. A credential change or Re-check asks at once.',
+        control: { kind: 'duration', scale: 60 },
       },
       { key: 'github_concurrency', label: 'Parallel GitHub work', help: 'Repos planned, applied or audited at the same time in bulk runs.', control: { kind: 'number', min: 1, max: 32, unit: 'repos' } },
     ],
@@ -276,12 +290,22 @@ export const settingsSubnav = (owners: string[]) => [
   { href: '/settings#about', label: 'About', icon: 'bi-info-circle' },
 ]
 
-const MODE_LABEL: Record<string, string> = { pat: 'Personal access token', gh: 'gh CLI login', app: 'GitHub App', none: 'Not configured', fake: 'Test client' }
-const SOURCE_LABEL: Record<string, string> = { settings: 'these settings', octoforge: 'Octoforge', env: 'environment variables', 'gh-cli': 'the gh CLI', none: 'nowhere' }
+export type SettingsData = {
+  settings: Record<string, string>
+  auth: AuthView
+  owners: string[]
+  version: string
+  lastAuditAt?: string | null
+  /** App ID and key are available (settings or env). */
+  appReady?: boolean
+  /** Required versus granted GitHub permissions. */
+  github?: GitHubStatus
+  manifest?: ManifestView
+  /** Result of the App manifest callback, shown once. */
+  appCreated?: AppCreatedView
+}
 
-export type SettingsData = { settings: Record<string, string>; auth: AuthView; owners: string[]; version: string; lastAuditAt?: string | null; /** App ID and key are available (settings or env). */ appReady?: boolean }
-
-export const SettingsPage = ({ settings, auth, owners, version, appReady = false }: SettingsData) => {
+export const SettingsPage = ({ settings, auth, owners, version, appReady = false, github, manifest, appCreated }: SettingsData) => {
   const delivered = settings['github_credential_source'] === 'octoforge' || auth.source === 'octoforge'
   const groups = SETTING_GROUPS(owners)
   return (
@@ -312,10 +336,14 @@ export const SettingsPage = ({ settings, auth, owners, version, appReady = false
               {g.id === 'github' ? (
                 <>
                   {' '}
-                  <span class="t-badge" data-tone={auth.mode === 'none' ? 'warning' : 'success'} id="github-state">
-                    {auth.mode === 'none' ? 'not configured' : 'connected'}
-                  </span>
-                  {delivered ? (
+                  {github ? (
+                    <GitHubStateBadge status={github} id="github-state" />
+                  ) : (
+                    <span class="t-badge" data-tone={auth.mode === 'none' ? 'warning' : 'success'} id="github-state">
+                      {auth.mode === 'none' ? 'not configured' : 'connected'}
+                    </span>
+                  )}
+                  {delivered && !github?.delivered ? (
                     <>
                       {' '}
                       <span class="t-badge" data-tone="purple">
@@ -327,28 +355,9 @@ export const SettingsPage = ({ settings, auth, owners, version, appReady = false
               ) : null}
             </h2>
             <div class="t-section-body t-stack" data-gap="3">
-              {g.id === 'github' ? (
-                <dl class="t-facts" id="github-facts">
-                  <dt>In use</dt>
-                  <dd safe>{MODE_LABEL[auth.mode] ?? auth.mode}</dd>
-                  <dt>From</dt>
-                  <dd safe>{SOURCE_LABEL[auth.source] ?? auth.source}</dd>
-                  <dt>Acting as</dt>
-                  <dd>
-                    {auth.login ? (
-                      <a href={`https://github.com/${auth.login}`} target="_blank" rel="noopener" safe>
-                        {auth.login}
-                      </a>
-                    ) : auth.app_slug ? (
-                      <a href={`https://github.com/apps/${auth.app_slug}`} target="_blank" rel="noopener" safe>
-                        {auth.app_slug}
-                      </a>
-                    ) : (
-                      <span class="t-muted">unknown</span>
-                    )}
-                  </dd>
-                </dl>
-              ) : null}
+              {g.id === 'github' && appCreated ? <AppCreatedAlert result={appCreated} /> : null}
+              {g.id === 'github' && github ? <GitHubAccess status={github} /> : null}
+              {g.id === 'github' && manifest ? <ManifestBlock manifest={manifest} /> : null}
               <div class="t-settings">
                 {g.items.map((spec) => (
                   <SettingRow spec={spec} value={settings[spec.key] ?? ''} appReady={appReady} />

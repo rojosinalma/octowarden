@@ -23,6 +23,8 @@ export type LayoutProps = PropsWithChildren<{
   theme?: Theme
   /** Extra sidebar entries under the active item (settings sections). */
   subnav?: { href: string; label: string; icon: string }[]
+  /** Definite GitHub permission gaps (cached check): a danger counter on Settings and its GitHub entry. */
+  githubGaps?: number
 }>
 
 const SAFE_ID = /^[a-z0-9-]+$/
@@ -35,7 +37,14 @@ const PROJECT = 'octowarden'
 export const seedTheme = (theme: Theme) =>
   `(function(){try{var t=${JSON.stringify(Object.fromEntries(Object.entries(theme).filter(([, v]) => typeof v === 'string' && SAFE_ID.test(v))))};for(var k in t){localStorage.setItem('${PROJECT}.'+k,t[k])}}catch(e){}})();`
 
-export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav, children }: LayoutProps) => (
+const GapCounter = ({ n }: { n?: number }) =>
+  n ? (
+    <span class="t-counter" data-tone="danger" data-github-gaps={String(n)} data-tip={`GitHub access lacks ${String(n)} permission${n === 1 ? '' : 's'}`}>
+      {String(n)}
+    </span>
+  ) : null
+
+export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav, githubGaps, children }: LayoutProps) => (
   <>
     {'<!doctype html>'}
     <html lang="en">
@@ -76,6 +85,7 @@ export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav,
                   <a class="t-sidebar-item" href="/settings" aria-current={active === 'settings' && !subnav ? 'page' : undefined}>
                     <Icon id="bi-gear" />
                     <span class="t-sidebar-item-name">Settings</span>
+                    {subnav ? null : <GapCounter n={githubGaps} />}
                   </a>
                   {subnav ? (
                     <ul class="t-sidebar-nested" id="settings-nav">
@@ -86,6 +96,7 @@ export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav,
                             <span class="t-sidebar-item-name" safe>
                               {s.label}
                             </span>
+                            {s.href.endsWith('#github') ? <GapCounter n={githubGaps} /> : null}
                           </a>
                         </li>
                       ))}

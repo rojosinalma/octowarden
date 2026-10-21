@@ -64,6 +64,27 @@ describe('octoforge contract v1', () => {
   test('status', async () => {
     const r = await req('GET', '/status')
     expect(r.body).toMatchObject({ ok: true, contract: 1, version: '0.1.0', database: { engine: 'sqlite', source: 'env' } })
+    for (const k of Object.keys(r.body.github)) expect(['mode', 'source', 'app_id', 'login', 'missing', 'permissions_url', 'install_url']).toContain(k)
+  })
+
+  test('status: github.missing and permissions_url from the access check (definite gaps only)', async () => {
+    const { setGitHubClient } = await import('../../src/auth/providers')
+    const { createFakeGitHub } = await import('../../src/github/fake')
+    const { invalidateGitHubStatus } = await import('../../src/github/status')
+    const gh = createFakeGitHub('pat')
+    gh.on('GET /user', () => ({ login: 'tester' }), { 'x-oauth-scopes': 'repo, workflow' })
+    setGitHubClient(gh)
+    invalidateGitHubStatus()
+    try {
+      const r = await req('GET', '/status')
+      // a classic token with repo + workflow lacks only read:org (team picker)
+      expect(r.body.github.missing).toEqual(['members:read'])
+      expect(r.body.github.permissions_url).toStartWith('https://github.com/settings/')
+      expect(r.text).not.toContain('ghp_')
+    } finally {
+      setGitHubClient(undefined)
+      invalidateGitHubStatus()
+    }
   })
 
   test('PUT/DELETE github: stored in settings, never echoed', async () => {

@@ -30,7 +30,10 @@ export function stubGitHub(routes: Record<string, Route | object>): Seen[] {
     const out = typeof route === 'function' ? (route as Route)(req) : route ? (isResponse(route) ? (route as { status: number; body: unknown }) : { body: route }) : undefined
     const status = out?.status ?? (out ? 200 : 404)
     const body = out?.body ?? (out ? {} : { message: 'Not Found' })
-    return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'x-ratelimit-remaining': '4999' } })
+    const res = new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'x-ratelimit-remaining': '4999' } })
+    // A real fetch answer carries its URL; Octokit's pagination reads it.
+    Object.defineProperty(res, 'url', { value: url.href })
+    return res
   }) as typeof fetch
   return seen
 }

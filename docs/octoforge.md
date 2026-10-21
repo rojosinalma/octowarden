@@ -10,7 +10,7 @@ contract. Everything here is optional: without `OCTOFORGE_TOKEN` every `/api/oct
 and token scopes it needs, the database engines it supports and the names of its environment
 variables. `GET /api/octoforge/manifest` serves the same document, not wrapped, with no bearer.
 
-Why these permissions:
+Why these permissions (the full list with what breaks without each: [github-app.md](github-app.md)):
 
 | Permission | Used for |
 |---|---|
@@ -21,7 +21,7 @@ Why these permissions:
 | `repository_hooks: write` | webhooks |
 | `workflows: write` | template files under `.github/workflows/` |
 | `checks: read`, `statuses: read` | status check names for required-check pickers |
-| `environments: read` | environment names for pickers |
+| `actions: read` | environment names for pickers (GitHub serves the environment list under Actions) |
 | `members: read` | team slugs in organizations |
 | `metadata: read` | every repo read |
 
@@ -36,7 +36,7 @@ Every route except `manifest` needs `Authorization: Bearer <OCTOFORGE_TOKEN>` (c
 | Route | Does |
 |---|---|
 | `GET /api/octoforge/manifest` | The manifest |
-| `GET /api/octoforge/status` | `{ok, message, contract, version, github: {mode, source, app_id?, login?}, database: {engine, schema?, source}}` |
+| `GET /api/octoforge/status` | `{ok, message, contract, version, github: {mode, source, app_id?, login?, missing?, permissions_url?, install_url?}, database: {engine, schema?, source}}` |
 | `PUT /api/octoforge/github` | `{mode: "pat", token}` or `{mode: "app", app_id, private_key, webhook_secret?, installation_id?}` |
 | `DELETE /api/octoforge/github` | Drops the delivered credential |
 | `POST /api/octoforge/database/adopt` | `{url, schema, copy}`: moves to another database |
@@ -54,6 +54,11 @@ use at once: the answer is `{ok, message, login}` or `{ok, message, app_slug}` w
 
 `DELETE /github` clears the delivered values and sets `github_auth_mode` back to `auto`, so octowarden
 uses its environment credentials again (`removed: false` when nothing was delivered).
+
+In `status`, `github.missing` lists the permissions octowarden needs and the credential definitely lacks
+(`<permission>:<level>`; unknown grants are never listed), `permissions_url` is where the owner edits the App or
+token and `install_url` is where an installation accepts new permissions. The values come from the same cached
+check as the Settings page.
 
 In `status`, `github.source` is `octoforge` for a delivered credential, `env` for one set on the
 instance (environment, Settings page or the gh CLI) and `none` without credentials.

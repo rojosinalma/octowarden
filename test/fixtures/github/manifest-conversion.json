@@ -1,0 +1,18 @@
+{
+  "id": 7654321,
+  "slug": "octowarden-example",
+  "node_id": "A_kwDOConverted",
+  "owner": { "login": "octo-example", "id": 1000001, "type": "User" },
+  "name": "Octowarden",
+  "description": "Reusable templates for repo settings.",
+  "external_url": "https://github.com/rojosinalma/octowarden",
+  "html_url": "https://github.com/apps/octowarden-example",
+  "created_at": "2026-10-21T12:00:00Z",
+  "updated_at": "2026-10-21T12:00:00Z",
+  "permissions": { "administration": "write", "contents": "write", "metadata": "read" },
+  "events": [],
+  "client_id": "Iv23liConverted",
+  "client_secret": "test-client-secret-not-real",
+  "webhook_secret": "test-webhook-secret-not-real",
+  "pem": "-----BEGIN RSA PRIVATE KEY-----\nTEST-KEY-NOT-REAL\n-----END RSA PRIVATE KEY-----\n"
+}

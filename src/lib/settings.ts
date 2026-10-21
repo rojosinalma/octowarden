@@ -22,6 +22,10 @@ export const DEFAULTS = {
   github_app_private_key: '',
   github_app_installation_id: '',
   github_webhook_secret: '',
+  /** Minutes the GitHub access status (granted vs required permissions) is reused before GitHub is asked again. */
+  github_status_ttl_min: '10',
+  /** Public base URL of this instance (App manifest redirect/setup URLs); empty = the request's origin. */
+  public_url: '',
   /** `octoforge` when the GitHub credential above was delivered via PUT /api/octoforge/github, else empty. */
   github_credential_source: '',
   notify_discord_webhook: '',

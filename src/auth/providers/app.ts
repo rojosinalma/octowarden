@@ -131,6 +131,21 @@ async function onlyInstallation(s: State): Promise<number> {
 }
 
 const APP_ROUTE = /^[A-Z]+ \/app(\/|$)/
+/** Routes that list what an installation can reach: without an owner they fan out over every installation. */
+const FAN_OUT = new Set(['GET /installation/repositories'])
+
+/** Every installation of the App, one after the other, up to `max` items; account logins prime the owner cache. */
+async function fanOut<T>(s: State, route: string, params: RouteParams | undefined, max: number | undefined): Promise<T[]> {
+  const list = await s.jwt.paginate<{ id: number; account?: { login?: string } }>('GET /app/installations', {}, MAX_INSTALLATIONS)
+  const out: T[] = []
+  for (const inst of list) {
+    if (max !== undefined && out.length >= max) break
+    if (inst.account?.login) remember(s.installations, inst.account.login.toLowerCase(), { id: inst.id, at: Date.now() }, MAX_INSTALLATIONS)
+    const left = max === undefined ? undefined : max - out.length
+    out.push(...(await clientFor(s, inst.id).paginate<T>(route, params, left)))
+  }
+  return out
+}
 
 /** Without an installation id: every call picks the installation of the account it touches. */
 function routingClient(s: State): GitHubClient {
@@ -142,7 +157,8 @@ function routingClient(s: State): GitHubClient {
   return {
     mode: 'app',
     request: async (route, params) => (await pick(route, params)).request(route, params),
-    paginate: async (route, params, max) => (await pick(route, params)).paginate(route, params, max),
+    paginate: async <T,>(route: string, params: RouteParams | undefined, max?: number) =>
+      FAN_OUT.has(route) && !ownerOf(params) ? fanOut<T>(s, route, params, max) : (await pick(route, params)).paginate<T>(route, params, max),
     graphql: async (query, variables) => (await pick('POST /graphql', variables)).graphql(query, variables),
   }
 }

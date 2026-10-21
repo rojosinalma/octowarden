@@ -3,6 +3,7 @@ import { dbConnected } from '../db'
 import { nowIso } from '../db/util'
 import { isPlanLimit, type GitHubClient } from '../github/client'
 import { getRepo } from '../github/repo'
+import { gapsFor, githubStatus, type Gap } from '../github/status'
 import { recordEvent } from '../lib/events'
 import { ValidationError, zodMessage } from '../lib/json'
 import { log } from '../lib/log'
@@ -41,11 +42,19 @@ export function implicitValues(repo: RepoInfo): Values {
   return { owner: repo.owner, repo: repo.name, full_name: repo.full_name, default_branch: repo.default_branch }
 }
 
+/** Definite permission gaps for this repo; none when the check is off or GitHub's answer is unknown. */
+async function accessGaps(input: PlanInput, owner: string): Promise<Gap[]> {
+  if (input.access === false) return []
+  const status = input.access ?? (input.gh ? undefined : await githubStatus())
+  return status ? gapsFor(status, owner) : []
+}
+
 /** Reads and diffs every section; never writes. Not recorded (plan() and audit() record). */
 export async function buildPlan(input: PlanInput, gh: GitHubClient): Promise<Plan> {
   const resolved = await resolveTarget(input.repo, input, input.library)
   const { info: repo } = await getRepo(gh, input.repo)
   const { fit, skipped } = fitTemplates(repo, resolved.templates)
+  const gaps = await accessGaps(input, repo.owner)
 
   let desired: Record<string, unknown>
   try {
@@ -91,6 +100,13 @@ export async function buildPlan(input: PlanInput, gh: GitHubClient): Promise<Pla
       summary.skipped = support.reason
       continue
     }
+    const sectionGaps = gaps.filter((g) => g.permission.sections.includes(name))
+    const blocking = sectionGaps.find((g) => !g.permission.applies)
+    if (blocking) {
+      plan.skipped.push({ section: name, reason: blocking.reason })
+      summary.skipped = blocking.reason
+      continue
+    }
     let current: unknown
     try {
       current = await section.read({ gh, repo, dryRun: true, log: logger.child(name) }, parsed.data)
@@ -101,7 +117,9 @@ export async function buildPlan(input: PlanInput, gh: GitHubClient): Promise<Pla
       continue
     }
     for (const change of section.diff(parsed.data, current, repo)) {
+      const gap = change.op === 'noop' ? undefined : sectionGaps.find((g) => g.permission.applies?.(change))
       if (change.skip) plan.skipped.push({ section: name, target: change.target, reason: change.skip })
+      else if (gap) plan.skipped.push({ section: name, target: change.target, reason: gap.reason })
       else if (change.op === 'noop') summary.noop++
       else {
         summary.changes++

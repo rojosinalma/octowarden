@@ -82,6 +82,29 @@ describe('GitHub App provider', () => {
     expect(ownerOf({ query: 'x' })).toBeUndefined()
   })
 
+  test('several installations, no installation id: the repo list fans out over every installation', async () => {
+    const { privateKey } = rsaKeys()
+    await envOnly({ GITHUB_APP_ID: '12345', GITHUB_APP_PRIVATE_KEY: privateKey })
+    const token = (t: string) => ({ status: 201, body: { token: t, expires_at: future(), permissions: {}, repository_selection: 'all' } })
+    const seen = stubGitHub({
+      'GET /app/installations': [{ id: 777, account: { login: 'alice' } }, { id: 888, account: { login: 'acme' } }],
+      'POST /app/installations/777/access_tokens': token('ghs_alice'),
+      'POST /app/installations/888/access_tokens': token('ghs_acme'),
+      'GET /installation/repositories': (req: { authorization: string }) => ({
+        status: 200,
+        body: { total_count: 1, repositories: [{ full_name: req.authorization.endsWith('ghs_alice') ? 'alice/one' : 'acme/two' }] },
+      }),
+      'GET /repos/acme/two': { full_name: 'acme/two' },
+    })
+    const gh = await app.client()
+    const repos = await gh.paginate<{ full_name: string }>('GET /installation/repositories', {}, 100)
+    expect(repos.map((r) => r.full_name)).toEqual(['alice/one', 'acme/two'])
+    // the account logins primed the owner cache: no per-owner lookup afterwards
+    await gh.request('GET /repos/{owner}/{repo}', { owner: 'acme', repo: 'two' })
+    expect(seen.some((r) => r.path.endsWith('/installation') && r.path.startsWith('/repos/'))).toBe(false)
+    expect((await gh.paginate('GET /installation/repositories', {}, 1)).length).toBe(1)
+  })
+
   test('the App is not installed on the owner → a 404 GitHubError naming it', async () => {
     const { privateKey } = rsaKeys()
     await envOnly({ GITHUB_APP_ID: '12345', GITHUB_APP_PRIVATE_KEY: privateKey })

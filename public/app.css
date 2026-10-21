@@ -63,3 +63,7 @@ code.diff-val[data-side="after"], pre.diff-val[data-side="after"] { color: var(-
 .value-multi { max-height: 12rem; overflow: auto; }
 .set-checks .t-check-desc { word-break: break-word; }
 .set-order-item > .t-cluster { flex: 0 0 auto; flex-wrap: nowrap; }
+
+/* GitHub access table: the reason under what breaks */
+.gh-why { display: block; max-width: 60ch; }
+#github-manifest .t-code-pre { max-height: 22rem; overflow: auto; margin: 0; }

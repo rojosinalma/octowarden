@@ -1,0 +1,51 @@
+[
+  {
+    "id": 90000001,
+    "account": { "login": "octo-example", "id": 1000001, "type": "User" },
+    "repository_selection": "all",
+    "access_tokens_url": "https://api.github.com/app/installations/90000001/access_tokens",
+    "repositories_url": "https://api.github.com/installation/repositories",
+    "html_url": "https://github.com/settings/installations/90000001",
+    "app_id": 1234567,
+    "app_slug": "octoforge-app",
+    "target_id": 1000001,
+    "target_type": "User",
+    "permissions": {
+      "actions": "write",
+      "administration": "write",
+      "checks": "read",
+      "contents": "write",
+      "metadata": "read",
+      "pull_requests": "write",
+      "workflows": "write"
+    },
+    "events": [],
+    "created_at": "2026-10-01T10:05:00Z",
+    "updated_at": "2026-10-01T10:05:00Z",
+    "suspended_at": null
+  },
+  {
+    "id": 90000002,
+    "account": { "login": "octo-org", "id": 2000002, "type": "Organization" },
+    "repository_selection": "selected",
+    "access_tokens_url": "https://api.github.com/app/installations/90000002/access_tokens",
+    "repositories_url": "https://api.github.com/installation/repositories",
+    "html_url": "https://github.com/organizations/octo-org/settings/installations/90000002",
+    "app_id": 1234567,
+    "app_slug": "octoforge-app",
+    "target_id": 2000002,
+    "target_type": "Organization",
+    "permissions": {
+      "actions": "write",
+      "administration": "write",
+      "checks": "read",
+      "contents": "write",
+      "metadata": "read",
+      "workflows": "write"
+    },
+    "events": [],
+    "created_at": "2026-10-02T09:00:00Z",
+    "updated_at": "2026-10-02T09:00:00Z",
+    "suspended_at": null
+  }
+]

@@ -1,5 +1,6 @@
 import type { DriftState, RunStatus, Source } from '../db/schema'
 import type { GitHubClient } from '../github/client'
+import type { GitHubStatus } from '../github/status'
 import type { RepoInfo } from '../github/repo'
 import type { ApplyResult, Change } from '../sections/types'
 import type { Library, Template } from '../templates/library'
@@ -25,6 +26,11 @@ export type EngineOptions = {
   library?: Library
   /** Record runs/events (default true; always off when no DB is connected). */
   record?: boolean
+  /**
+   * GitHub access status used to skip sections the credential definitely cannot manage. Default: the cached
+   * status (src/github/status.ts) when `gh` is not given; `false` turns the check off.
+   */
+  access?: GitHubStatus | false
 }
 
 export type PlanInput = Target & Origin & EngineOptions & { repo: string }

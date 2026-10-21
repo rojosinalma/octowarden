@@ -4,6 +4,7 @@ import manifest from '../../octoforge.json'
 import { appCredentials } from '../auth/providers/app'
 import { authStatus } from '../auth/providers'
 import { verifyCredential } from '../auth/verify'
+import { contractPermissions, githubStatus as accessStatus } from '../github/status'
 import { dbHandle } from '../db'
 import { adoptDatabase, dropAdoption } from '../lib/adopt'
 import { config } from '../lib/config'
@@ -59,6 +60,7 @@ async function githubStatus() {
     source: contractSource(s.source),
     ...(app ? { app_id: Number(app.appId) } : {}),
     ...(s.login ? { login: s.login } : {}),
+    ...(s.mode === 'none' ? {} : contractPermissions(await accessStatus())),
   }
 }
 

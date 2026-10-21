@@ -1,6 +1,7 @@
 import type { AnyElysia } from 'elysia'
 import { config } from '../lib/config'
 import { parseTopics, sseHandler } from '../lib/sse'
+import * as github from './api/github'
 import * as plans from './api/plans'
 import * as portability from './api/portability'
 import * as repos from './api/repos'
@@ -11,7 +12,7 @@ import * as settings from './api/settings'
 import * as templates from './api/templates'
 import { requireBearer } from './guard'
 
-const MODULES = [sections, templates, sets, repos, plans, runs, portability, settings]
+const MODULES = [sections, templates, sets, repos, plans, runs, portability, settings, github]
 
 /**
  * JSON API under `/api/*` (`{ok, message, …}`), bearer `API_TOKEN` (503 while unset, 401 on mismatch).

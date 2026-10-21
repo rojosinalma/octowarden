@@ -22,7 +22,7 @@ Tools that can delete or overwrite something are marked `destructiveHint`; read-
 
 | Tool | Arguments | Does |
 |---|---|---|
-| `health` | | DB state, version, GitHub auth (mode, source, login or App slug), rate limits, scheduler, bulk runs in flight |
+| `health` | | DB state, version, GitHub auth (mode, source, login or App slug), `github_access` (required versus granted permissions, `missing`, fix links), rate limits, scheduler, bulk runs in flight |
 | `list_sections` | | Sections with title, description, JSON Schema of the config and merge key |
 | `list_templates` | | Stored and built-in templates |
 | `get_template` | `name` | One template with `doc` and `used_by` |

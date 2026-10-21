@@ -39,7 +39,10 @@ Permissions:
 
 - Classic token: `repo`, `admin:repo_hook`, `delete_repo`, `workflow`, `read:org`.
 - Fine-grained token or App: Administration, Contents, Pull requests, Issues, Webhooks and Workflows
-  read and write; Checks, Commit statuses, Environments, Members and Metadata read.
+  read and write; Actions, Checks, Commit statuses, Members and Metadata read.
+
+What each one is for, what breaks without it, and how to create the App from a manifest:
+[github-app.md](github-app.md). Settings → GitHub compares them with what the credential grants.
 
 Rulesets and branch protection on private repositories need GitHub Pro, Team or Enterprise; on
 GitHub Free those sections are skipped for private repositories with GitHub's reason.
@@ -50,6 +53,8 @@ GitHub Free those sections are skipped for private repositories with GitHub's re
 |---|---|---|
 | `github_auth_mode` | `auto` | see above |
 | `github_token`, `github_app_id`, `github_app_private_key`, `github_app_installation_id`, `github_webhook_secret` | | credentials set from the UI; stored in the database as plain text, never shown again |
+| `github_status_ttl_min` | `10` | minutes the granted-permissions check is reused; a credential change or Re-check asks again |
+| `public_url` | | public address of this instance, for the App manifest's return URL; empty = the address of the page in use |
 | `default_owner` | | owner preselected when creating repositories and listing them |
 | `audit_interval_min` | `360` | minutes between scheduled audits of every repository with a set |
 | `audit_jitter_s` | `120` | random delay added to each audit |

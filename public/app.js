@@ -248,11 +248,63 @@
       const res = await saveSetting(key, scale > 1 ? Math.round(Number(value) / scale) : value)
       if (res.ok && el && el.dataset.secret !== undefined) setTimeout(() => paintSecret(key, true))
       if (res.ok && (key === 'github_app_id' || key === 'github_app_private_key')) setTimeout(() => loadInstallations(box, true))
+      if (res.ok && GITHUB_CREDENTIAL_KEYS.includes(key)) setTimeout(() => recheckGitHub(null, true))
       if (res.ok && key === 'github_app_installation_id') { const w = $('[data-installations]', box); if (w) w.dataset.value = String(value) }
       return res
     })
     $$('.t-duration select', box).forEach((s) => T.sync(s))
     loadInstallations(box)
+    initManifest(box)
+    const created = $('#app-created', box)
+    if (created && !created.dataset.toasted) {
+      created.dataset.toasted = '1'
+      if (created.dataset.toast) T.toast('success', created.dataset.toast)
+      else if (created.dataset.toastError) T.toast('danger', created.dataset.toastError)
+      // The callback URL carries a one-time code: show /settings instead, without a reload.
+      if (location.pathname !== '/settings') history.replaceState(null, '', '/settings#github')
+    }
+  }
+
+  /* ── GitHub access: re-check (server first), manifest owner picker ───────── */
+  const GITHUB_CREDENTIAL_KEYS = ['github_auth_mode', 'github_token', 'github_app_id', 'github_app_private_key', 'github_app_installation_id']
+  function paintGaps(n) {
+    $$('[data-github-gaps]').forEach((c) => c.remove())
+    if (!n) return
+    const tip = `GitHub access lacks ${plural(n, 'permission')}`
+    const target = $('#settings-nav a[href$="#github"]') || $('.t-shell-side a[href="/settings"]')
+    if (target) target.insertAdjacentHTML('beforeend', `<span class="t-counter" data-tone="danger" data-github-gaps="${n}" data-tip="${esc(tip)}">${n}</span>`)
+  }
+  async function recheckGitHub(btn, quiet) {
+    const block = $('#github-access')
+    if (!block) return
+    busy(btn, true)
+    block.setAttribute('aria-busy', 'true')
+    const res = await api('POST', '/ui/actions/github/recheck')
+    block.removeAttribute('aria-busy')
+    busy(btn, false)
+    if (!res.ok) { T.toast('danger', res.message); return }
+    const fresh = document.createElement('div')
+    fresh.innerHTML = res.html
+    const next = fresh.firstElementChild
+    block.replaceWith(next)
+    T.upgrade(next)
+    const badge = $('#github-state')
+    if (badge && res.badge) badge.outerHTML = res.badge
+    paintGaps(res.gaps || 0)
+    if (!quiet || res.gaps) T.toast(res.status && res.status.ok ? 'success' : res.status && res.status.error ? 'warning' : res.gaps ? 'danger' : 'info', res.message)
+  }
+  actions['github-recheck'] = (btn) => recheckGitHub(btn, false)
+  function initManifest(root) {
+    const form = $('#manifest-form', root)
+    if (!form) return
+    const owner = $('#manifest-owner', form)
+    const state = encodeURIComponent(form.dataset.state || '')
+    const target = () => {
+      const org = owner ? owner.value : ''
+      form.action = `${org ? `https://github.com/organizations/${encodeURIComponent(org)}` : 'https://github.com'}/settings/apps/new?state=${state}`
+    }
+    if (owner) owner.addEventListener('change', target)
+    target()
   }
   /** Installation ID picker: options from GET /app/installations; the stored value stays selectable on failure. */
   async function loadInstallations(root, force) {

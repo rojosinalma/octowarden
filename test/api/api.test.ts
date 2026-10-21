@@ -262,3 +262,33 @@ describe('stream', () => {
     expect(sseClients()).toBe(0)
   })
 })
+
+describe('github access', () => {
+  test('GET /api/github/status: bearer, classic token gaps, refresh asks again', async () => {
+    expect((await call('GET', '/api/github/status', undefined, { token: null })).status).toBe(401)
+    w.github.on('GET /user', () => ({ login: 'tester' }), { 'x-oauth-scopes': 'repo, workflow' })
+    const r = await call('GET', '/api/github/status')
+    expect(r.status).toBe(200)
+    expect(r.body).toMatchObject({ ok: true, message: 'the token lacks delete_repo, read:org', status: { kind: 'pat-classic', identity: 'tester', missing: ['members:read'], missing_scopes: ['delete_repo', 'read:org'] } })
+    expect(r.body.status.permissions.find((p: { key: string }) => p.key === 'members')).toMatchObject({ ok: false, scope: 'read:org', breaks: expect.any(String) })
+    await call('GET', '/api/github/status')
+    expect(w.github.calls.filter((c) => c.route === 'GET /user')).toHaveLength(1)
+    await call('GET', '/api/github/status?refresh=1')
+    await call('POST', '/api/github/recheck')
+    expect(w.github.calls.filter((c) => c.route === 'GET /user')).toHaveLength(3)
+  })
+
+  test('/health stays 200 and carries github.missing once a check ran', async () => {
+    w.github.on('GET /user', () => ({ login: 'tester' }), { 'x-oauth-scopes': 'repo' })
+    expect((await call('GET', '/health', undefined, { token: null })).body.github.missing).toBeUndefined()
+    await call('GET', '/api/github/status')
+    const h = await call('GET', '/health', undefined, { token: null })
+    expect(h.status).toBe(200)
+    expect(h.body).toMatchObject({ ok: true, github: { mode: 'fake', missing: ['workflows:write', 'members:read'] } })
+  })
+
+  test('public_url must be an http(s) URL', async () => {
+    expect((await call('PUT', '/api/settings', { public_url: 'ftp://x' })).status).toBe(422)
+    expect((await call('PUT', '/api/settings', { public_url: 'https://warden.example.com' })).body.settings.public_url).toBe('https://warden.example.com')
+  })
+})

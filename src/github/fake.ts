@@ -9,6 +9,7 @@ export type FakeCall = { route: string; params: RouteParams }
  */
 export function createFakeGitHub(mode = 'fake') {
   const handlers = new Map<string, FakeHandler>()
+  const headerMap = new Map<string, Record<string, string>>()
   const calls: FakeCall[] = []
   let graphqlHandler: ((query: string, variables: RouteParams) => unknown) | undefined
 
@@ -21,17 +22,22 @@ export function createFakeGitHub(mode = 'fake') {
   }
 
   const client: GitHubClient & {
-    on(route: string, handler: FakeHandler): void
+    /** `headers` are returned with every answer of the route (e.g. `x-oauth-scopes` on `GET /user`). */
+    on(route: string, handler: FakeHandler, headers?: Record<string, string>): void
     onGraphql(handler: (query: string, variables: RouteParams) => unknown): void
     calls: FakeCall[]
   } = {
     mode,
     calls,
-    on: (route, handler) => void handlers.set(route, handler),
+    on: (route, handler, headers) => {
+      handlers.set(route, handler)
+      if (headers) headerMap.set(route, headers)
+      else headerMap.delete(route)
+    },
     onGraphql: (handler) => void (graphqlHandler = handler),
     async request<T>(route: string, params: RouteParams = {}): Promise<GitHubResponse<T>> {
       const data = await call(route, params)
-      return { status: route.startsWith('DELETE') && data === undefined ? 204 : 200, data: data as T, headers: {} }
+      return { status: route.startsWith('DELETE') && data === undefined ? 204 : 200, data: data as T, headers: { ...headerMap.get(route) } }
     },
     async paginate<T>(route: string, params: RouteParams = {}, maxItems = 1000): Promise<T[]> {
       const data = await call(route, params)

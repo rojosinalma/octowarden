@@ -31,6 +31,11 @@ export function setGitHubClient(client: GitHubClient | undefined): void {
   override = client
 }
 
+/** The client forced by setGitHubClient, if any. */
+export function forcedGitHubClient(): GitHubClient | undefined {
+  return override
+}
+
 /** The provider that serves now, honouring `github_auth_mode`; undefined when none has credentials. */
 export async function resolveAuth(): Promise<AuthProvider | undefined> {
   const mode = await getSetting('github_auth_mode')
