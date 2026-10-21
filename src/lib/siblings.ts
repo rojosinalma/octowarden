@@ -18,7 +18,7 @@ export const siblingsSchema = z.object({
 
 export type Siblings = z.infer<typeof siblingsSchema>
 export type StoredSiblings = Siblings & { received_at: string }
-export type SiblingView = { forge: Siblings['forge']; members: (Siblings['members'][number] & { self: boolean })[] }
+export type SiblingView = { forge: Siblings['forge']; members: (Siblings['members'][number] & { self: boolean })[]; version?: string }
 
 export const SELF = 'octowarden'
 
@@ -48,7 +48,7 @@ export async function siblingView(now = Date.now()): Promise<SiblingView | undef
     const staleMs = (await getSettingInt('siblings_stale_min')) * 60_000
     const received = Date.parse(stored.received_at)
     if (!Number.isFinite(received) || (staleMs > 0 && now - received > staleMs)) return undefined
-    return { forge: parsed.data.forge, members: parsed.data.members.map((m) => ({ ...m, self: m.name === SELF })) }
+    return { forge: parsed.data.forge, members: parsed.data.members.map((m) => ({ ...m, self: m.name === SELF })), version: parsed.data.updated_at ?? stored.received_at }
   } catch {
     return undefined
   }

@@ -216,3 +216,9 @@ describe('escaping', () => {
     expect(island.indexOf('</script>')).toBeGreaterThan(island.indexOf('alert(3)'))
   })
 })
+
+test('favicon link carries a content version; sibling icons carry the list version', async () => {
+  const { req } = await import('./helpers')
+  const page = await req('GET', '/templates')
+  expect(page.text).toMatch(/<link rel="icon" type="image\/svg\+xml" href="\/favicon\.svg\?v=[0-9a-f]{10}"/)
+})

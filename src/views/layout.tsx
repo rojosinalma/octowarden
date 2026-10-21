@@ -31,6 +31,15 @@ export type LayoutProps = PropsWithChildren<{
 }>
 
 const SAFE_ID = /^[a-z0-9-]+$/
+
+/** Content hash of the favicon: browsers keep favicons in their own store, so a changed icon needs a new URL. */
+const FAVICON_VERSION = new Bun.CryptoHasher('sha256')
+  .update(await Bun.file(new URL('../../public/favicon.svg', import.meta.url)).text().catch(() => ''))
+  .digest('hex')
+  .slice(0, 10)
+
+/** Sibling icons get the list's timestamp, so an icon Octoforge's members change shows up with the next list. */
+const versioned = (src: string, v: string | undefined) => (v ? `${src}${src.includes('?') ? '&' : '?'}v=${encodeURIComponent(v)}` : src)
 const PROJECT = 'octowarden'
 
 /**
@@ -40,8 +49,8 @@ const PROJECT = 'octowarden'
 export const seedTheme = (theme: Theme) =>
   `(function(){try{var t=${JSON.stringify(Object.fromEntries(Object.entries(theme).filter(([, v]) => typeof v === 'string' && SAFE_ID.test(v))))};for(var k in t){localStorage.setItem('${PROJECT}.'+k,t[k])}}catch(e){}})();`
 
-const SiblingIcon = ({ src }: { src?: string }) =>
-  src ? <img class="t-icon sibling-icon" src={src} alt="" width="16" height="16" loading="lazy" /> : <Icon id="bi-box-arrow-up-right" />
+const SiblingIcon = ({ src, v }: { src?: string; v?: string }) =>
+  src ? <img class="t-icon sibling-icon" src={versioned(src, v)} alt="" width="16" height="16" loading="lazy" /> : <Icon id="bi-box-arrow-up-right" />
 
 /** Links to Octoforge and the other members; the current tool is marked, not linked. */
 const SiblingNav = ({ s }: { s: SiblingView }) => (
@@ -50,7 +59,7 @@ const SiblingNav = ({ s }: { s: SiblingView }) => (
     <li class="t-sidebar-group">Octoforge</li>
     <li>
       <a class="t-sidebar-item" href={s.forge.url} rel="noopener" data-sibling="octoforge">
-        <SiblingIcon src={s.forge.icon} />
+        <SiblingIcon src={s.forge.icon} v={s.version} />
         <span class="t-sidebar-item-name" safe>
           {s.forge.title}
         </span>
@@ -60,7 +69,7 @@ const SiblingNav = ({ s }: { s: SiblingView }) => (
       m.self ? (
         <li>
           <span class="t-sidebar-item sibling-self" aria-current="true" data-sibling={m.name}>
-            <SiblingIcon src={m.icon} />
+            <SiblingIcon src={m.icon} v={s.version} />
             <span class="t-sidebar-item-name" safe>
               {m.title}
             </span>
@@ -72,7 +81,7 @@ const SiblingNav = ({ s }: { s: SiblingView }) => (
       ) : (
         <li>
           <a class="t-sidebar-item" href={m.url} rel="noopener" data-sibling={m.name}>
-            <SiblingIcon src={m.icon} />
+            <SiblingIcon src={m.icon} v={s.version} />
             <span class="t-sidebar-item-name" safe>
               {m.title}
             </span>
@@ -98,7 +107,7 @@ export const Layout = ({ title, active, tailorHead, version, theme = {}, subnav,
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title safe>{`${title} · octowarden`}</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/svg+xml" href={`/favicon.svg?v=${FAVICON_VERSION}`} />
         <script>{seedTheme(theme)}</script>
         {tailorHead}
         <link rel="stylesheet" href="/public/app.css" />

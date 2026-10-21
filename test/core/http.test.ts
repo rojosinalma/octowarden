@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
+import { VERSION } from '../../src/lib/version'
 import { fresh } from './helpers'
 import { createApp } from '../../src/app'
 import { setGitHubClient } from '../../src/auth/providers'
@@ -15,7 +16,7 @@ describe('http', () => {
     const res = await createApp().handle(new Request('http://localhost/health'))
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toMatchObject({ ok: true, db: 'ok', version: '0.1.0', github: { mode: 'fake' } })
+    expect(body).toMatchObject({ ok: true, db: 'ok', version: VERSION, github: { mode: 'fake' } })
   })
 
   test('GET /health: 503 when the database is down', async () => {

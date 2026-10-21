@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { VERSION } from '../../src/lib/version'
 import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -63,7 +64,7 @@ describe('octoforge contract v1', () => {
 
   test('status', async () => {
     const r = await req('GET', '/status')
-    expect(r.body).toMatchObject({ ok: true, contract: 1, version: '0.1.0', database: { engine: 'sqlite', source: 'env' } })
+    expect(r.body).toMatchObject({ ok: true, contract: 1, version: VERSION, database: { engine: 'sqlite', source: 'env' } })
     for (const k of Object.keys(r.body.github)) expect(['mode', 'source', 'app_id', 'login', 'missing', 'permissions_url', 'install_url']).toContain(k)
   })
 
