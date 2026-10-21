@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries after 0.1.0 are written by
 release-please.
 
+## [0.2.1](https://github.com/rojosinalma/octowarden/compare/v0.2.0...v0.2.1) (2026-10-21)
+
+
+### Bug fixes
+
+* **ui:** serve the favicon at /favicon.ico too ([dd7cfeb](https://github.com/rojosinalma/octowarden/commit/dd7cfeb66bf20e13c3a388f6881c6543dbf28755))
+* **ui:** versioned favicon and sibling icon URLs so a changed icon shows at once ([e25edad](https://github.com/rojosinalma/octowarden/commit/e25edadf4f733755d099ab8f8b2357d6e66197ec))
+
 ## [0.2.0](https://github.com/rojosinalma/octowarden/compare/v0.1.0...v0.2.0) (2026-10-21)
 
 
