@@ -1,4 +1,4 @@
-import { resolveAuth } from '../auth/providers'
+import { hasGitHubCredentials } from '../auth/providers'
 import { rateLimits } from '../github/client'
 import { assignedRepos, SCHEDULER_CTX, startAudit, waitForBulk } from '../services'
 import { purgeEvents } from './events'
@@ -43,7 +43,7 @@ export async function tick(): Promise<void> {
   }
   try {
     if ((await getSettingInt('audit_interval_min')) === 0) return skip('audit_interval_min is 0 (disabled)')
-    if (!(await resolveAuth())) return skip('no GitHub credentials')
+    if (!(await hasGitHubCredentials())) return skip('no GitHub credentials')
     const core = rateLimits().find((r) => r.resource === 'core')
     const floor = await getSettingInt('audit_min_rate_remaining')
     if (core && core.remaining < floor && core.reset * 1000 > Date.now()) return skip(`GitHub rate limit low (${core.remaining} < ${floor})`)

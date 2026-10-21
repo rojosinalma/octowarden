@@ -42,6 +42,11 @@ export async function resolveAuth(): Promise<AuthProvider | undefined> {
   return undefined
 }
 
+/** True when a client can be built: a forced client (tests, standalone CLI) or a provider with credentials. */
+export async function hasGitHubCredentials(): Promise<boolean> {
+  return override !== undefined || (await resolveAuth()) !== undefined
+}
+
 /** Client of the resolved provider; throws UnavailableError (503) with a reason when none is configured. */
 export async function githubClient(): Promise<GitHubClient> {
   if (override) return override
