@@ -18,7 +18,7 @@ export const siblingsSchema = z.object({
 
 export type Siblings = z.infer<typeof siblingsSchema>
 export type StoredSiblings = Siblings & { received_at: string }
-export type SiblingView = { forge: Siblings['forge']; members: (Siblings['members'][number] & { self: boolean })[]; stale: boolean }
+export type SiblingView = { forge: Siblings['forge']; members: (Siblings['members'][number] & { self: boolean })[] }
 
 export const SELF = 'octowarden'
 
@@ -33,7 +33,10 @@ export async function clearSiblings(): Promise<boolean> {
   return had
 }
 
-/** What the switcher shows; undefined without OCTOFORGE_TOKEN or without a stored list. Never throws. */
+/**
+ * What the switcher shows. Only while Octoforge is really set up: OCTOFORGE_TOKEN set and a list Octoforge re-sent
+ * within `siblings_stale_min`; an old list means Octoforge is gone or stopped sending, so nothing shows. Never throws.
+ */
 export async function siblingView(now = Date.now()): Promise<SiblingView | undefined> {
   if (!config().octoforgeToken) return undefined
   try {
@@ -44,11 +47,8 @@ export async function siblingView(now = Date.now()): Promise<SiblingView | undef
     if (!parsed.success) return undefined
     const staleMs = (await getSettingInt('siblings_stale_min')) * 60_000
     const received = Date.parse(stored.received_at)
-    return {
-      forge: parsed.data.forge,
-      members: parsed.data.members.map((m) => ({ ...m, self: m.name === SELF })),
-      stale: Number.isFinite(received) && staleMs > 0 && now - received > staleMs,
-    }
+    if (!Number.isFinite(received) || (staleMs > 0 && now - received > staleMs)) return undefined
+    return { forge: parsed.data.forge, members: parsed.data.members.map((m) => ({ ...m, self: m.name === SELF })) }
   } catch {
     return undefined
   }

@@ -52,7 +52,7 @@ export const DEFAULTS = {
   backup_keep: '14',
   /** Sibling list pushed by Octoforge (`PUT /api/octoforge/siblings`, JSON); empty = no switcher. Not editable. */
   octoforge_siblings: '',
-  /** The switcher marks the sibling list stale when Octoforge has not re-sent it for this many minutes. */
+  /** The switcher hides when Octoforge has not re-sent the sibling list for this many minutes (3 × its resend). */
   siblings_stale_min: '180',
 } as const satisfies Record<string, string>
 

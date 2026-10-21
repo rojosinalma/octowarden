@@ -47,14 +47,7 @@ const SiblingIcon = ({ src }: { src?: string }) =>
 const SiblingNav = ({ s }: { s: SiblingView }) => (
   <>
     <li class="t-sidebar-divider"></li>
-    <li class="t-sidebar-group">
-      Octoforge{' '}
-      {s.stale ? (
-        <span class="t-badge" data-size="xs" data-tone="warning" data-tip="Octoforge has not refreshed this list for a while">
-          stale
-        </span>
-      ) : null}
-    </li>
+    <li class="t-sidebar-group">Octoforge</li>
     <li>
       <a class="t-sidebar-item" href={s.forge.url} rel="noopener" data-sibling="octoforge">
         <SiblingIcon src={s.forge.icon} />

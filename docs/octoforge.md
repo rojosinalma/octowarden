@@ -35,7 +35,7 @@ Every route except `manifest` needs `Authorization: Bearer <OCTOFORGE_TOKEN>` (c
 | Route | Does |
 |---|---|
 | `GET /api/octoforge/manifest` | The manifest |
-| `PUT /api/octoforge/siblings` | the sibling list `{forge, members, updated_at}`; stored in the `octoforge_siblings` setting and shown as an Octoforge group in the sidebar (links to Octoforge and every other member, this instance marked). A list not re-sent for `siblings_stale_min` minutes (default 180) is marked stale. |
+| `PUT /api/octoforge/siblings` | the sibling list `{forge, members, updated_at}`; stored in the `octoforge_siblings` setting and shown as an Octoforge group in the sidebar (links to Octoforge and every other member, this instance marked). The group shows only while Octoforge is set up: `OCTOFORGE_TOKEN` is set and Octoforge re-sent the list within `siblings_stale_min` minutes (default 180); otherwise it is hidden. |
 | `DELETE /api/octoforge/siblings` | clears the list; the group disappears |
 | `GET /api/octoforge/status` | `{ok, message, contract, version, github: {mode, source, app_id?, login?, missing?, permissions_url?, install_url?}, database: {engine, schema?, source}}` |
 | `PUT /api/octoforge/github` | `{mode: "pat", token}` or `{mode: "app", app_id, private_key, webhook_secret?, installation_id?}` |

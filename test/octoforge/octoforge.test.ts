@@ -195,10 +195,10 @@ describe('octoforge contract v1', () => {
     expect(page).not.toContain('data-sibling')
   })
 
-  test('siblings: marked stale after siblings_stale_min without a re-send', async () => {
+  test('siblings: hidden once Octoforge has not re-sent the list for siblings_stale_min', async () => {
     const { siblingView, storeSiblings } = await import('../../src/lib/siblings')
     await storeSiblings({ forge: { title: 'Octoforge', url: 'https://forge.example.com' }, members: [] })
-    expect((await siblingView())?.stale).toBe(false)
-    expect((await siblingView(Date.now() + 181 * 60_000))?.stale).toBe(true)
+    expect(await siblingView()).toBeDefined()
+    expect(await siblingView(Date.now() + 181 * 60_000)).toBeUndefined()
   })
 })
