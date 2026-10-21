@@ -1,6 +1,6 @@
 {
   "name": "octowarden",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "GitHub repo configuration manager: reusable templates for settings, security, rulesets, labels, webhooks and files, applied to one repo or many, with plan, apply, drift audit and an audit trail.",
   "type": "module",
   "private": true,
